@@ -1,0 +1,123 @@
+{
+  "header": {
+    "name": "PHAN CONG CHAU",
+    "nav": ["Home", "About", "Skills", "Projects", "Contact", "English"]
+  },
+
+  "landing": {
+    "title": "Hello, I'm Phan Cong Chau",
+    "sumary": "A passionate fullstack developer focused on building complete, user-centric web solutions and continuously improving to deliver high-quality digital experiences.",
+    "CV": "My CV"
+  },
+
+  "about": {
+    "header": "About",
+    "title": "Fullstack developer passionate about building complete and user-focused web applications",
+    "aboutMes": [
+      "Hello, I'm Phan Cong Chau.",
+      "I specialize in fullstack web development, focusing on creating seamless, efficient, and visually appealing digital experiences.",
+      "I enjoy working on both the frontend and backend, turning ideas into fully functional web applications.",
+      "I love exploring new technologies, learning continuously, and improving my skills to stay current with modern development practices.",
+      "My goal is to build scalable, high-quality web products that provide real value and great experiences for users."
+    ]
+  },
+
+  "skills": {
+    "header": "Skills",
+    "title": "Explore my journey through technical expertise. Each section represents a milestone in my continuous learning path.",
+    "techs": "Technologies",
+    "tools": "Tools"
+  },
+
+  "projects": {
+    "header": "Projects",
+    "title": "Discover my journey through projects, with each one marking a step forward in my growth and learning.",
+    "projects": [
+      {
+        "title": "Restaurant Management System",
+        "completeTime": "11/2024 - 12/2024",
+        "description": "A restaurant management application with features for ordering, reservations, menu management, and revenue statistics. Developed by a team of 5 using the MVC model.",
+        "skills": ["Handlebars", "Express.js", "Node.js", "MySQL"],
+        "highlight": "Integrated user authentication, role-based access for managers/staff, and intuitive revenue reports.",
+        "githubURL": ["https://github.com/Cong-Chau/Restaurant"]
+      },
+      {
+        "title": "AI-powered Video Creation Platform",
+        "completeTime": "05/2025 - 07/2025",
+        "description": "A web platform that enables automatic short video creation from text, integrating Text-to-Speech, image-to-video conversion, and auto-generated subtitles.",
+        "skills": ["React", "Tailwind CSS", "Python", "MongoDB"],
+        "highlight": "Combined React + Tailwind frontend with Python backend for AI processing, simplifying the video creation process.",
+        "githubURL": [
+          "https://github.com/Cong-Chau/GenerateVideo/tree/main-chau"
+        ]
+      },
+      {
+        "title": "ACCI Exam Management System",
+        "completeTime": "08/2025 - Now",
+        "description": "A system for managing English & IT certification exams (ACCI), supporting registration, payment, renewal, issuing exam slips, and certification.",
+        "skills": [
+          "React",
+          "React Router",
+          "Redux Toolkit",
+          "Tailwind CSS",
+          "Express.js",
+          "Node.js",
+          "MySQL"
+        ],
+        "highlight": "Implemented separate FE/BE with a fully modeled business process from registration to certification issuance.",
+        "githubURL": [
+          "https://github.com/Cong-Chau/ACCI-Client",
+          "https://github.com/Cong-Chau/ACCI-Server"
+        ]
+      },
+      {
+        "title": "Agency Management System",
+        "completeTime": "11/2024 - 12/2024",
+        "description": "An application for managing goods, import/export, and revenue reports. Developed by a team of 4 using the MVC model.",
+        "skills": ["Handlebars", "Express.js", "Node.js", "MySQL"],
+        "highlight": "Provides intuitive revenue statistics, helping managers quickly assess business performance.",
+        "githubURL": ["https://github.com/Cong-Chau/AgentManager"]
+      },
+      {
+        "title": "Remote Desktop",
+        "completeTime": "11/2024 - 12/2024",
+        "description": "A LAN-based remote desktop application using client-server model, transmitting screen images and controlling mouse and keyboard.",
+        "skills": ["C++", "Windows API", "Winsock", "Multithreading"],
+        "highlight": "Applied socket programming and multithreading to optimize data transmission and reduce latency.",
+        "githubURL": ["https://github.com/Cong-Chau/RemoteDesktop"]
+      },
+      {
+        "title": "Course Management (Console App)",
+        "completeTime": "04/2023 - 06/2023",
+        "description": "A C++ console application to manage students, courses, registration, and grading.",
+        "skills": ["C++", "File I/O", "Data Structures"],
+        "highlight": "Implemented full CRUD operations in a console environment, strengthening data structure and OOP skills.",
+        "githubURL": ["https://github.com/Cong-Chau/CourseManage"]
+      }
+    ]
+  },
+
+  "contact": {
+    "header": "Contact Me",
+    "title1": "I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision. Feel free to reach out!",
+    "title2": "Or connect with me on",
+    "titleSocialMedia": "social media",
+    "form": {
+      "name": "Full Name",
+      "message": "Message",
+      "btn": "Send"
+    }
+  },
+
+  "footer": {
+    "title": "Fullstack developer passionate about creating innovative web solutions and bringing ideas to life.",
+    "quickLink": {
+      "header": "Quick Links",
+      "projects": "Projects",
+      "contact": "Contact"
+    },
+    "connect": "Connect",
+    "reserved": "All rights reserved.",
+    "by": "Designed and developed by Phan Cong Chau"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "header": {
+    "name": "PHAN CÔNG CHÂU",
+    "nav": [
+      "Trang chủ",
+      "Giới thiệu",
+      "Kỹ năng",
+      "Dự án",
+      "Liên hệ",
+      "Tiếng việt"
+    ]
+  },
+
+  "landing": {
+    "title": "Xin chào, tôi là Phan Công Châu",
+    "sumary": "Là một fullstack developer đam mê xây dựng các giải pháp web toàn diện, lấy người dùng làm trung tâm và không ngừng phát triển để mang lại trải nghiệm số chất lượng cao.",
+    "CV": "CV của tôi"
+  },
+
+  "about": {
+    "header": "Giới thiệu",
+    "title": "Fullstack developer đam mê xây dựng các ứng dụng web hoàn chỉnh và lấy người dùng làm trung tâm",
+    "aboutMes": [
+      "Xin chào, tôi là Phan Công Châu.",
+      "Tôi tập trung vào phát triển web fullstack, hướng đến việc tạo ra những trải nghiệm số mượt mà, hiệu quả và thẩm mỹ.",
+      "Tôi yêu thích cả frontend và backend, biến ý tưởng thành các ứng dụng web hoàn chỉnh.",
+      "Tôi luôn học hỏi và khám phá công nghệ mới để nâng cao kỹ năng và bắt kịp xu hướng phát triển hiện đại.",
+      "Mục tiêu của tôi là xây dựng những sản phẩm web chất lượng cao, có khả năng mở rộng và mang lại giá trị thực cho người dùng."
+    ]
+  },
+  "skills": {
+    "header": "Kỹ năng",
+    "title": "Khám phá hành trình của tôi thông qua kiến thức chuyên môn. Mỗi phần đều là một cột mốc trong con đường học hỏi không ngừng của tôi",
+    "techs": "Công nghệ",
+    "tools": "Công cụ"
+  },
+
+  "projects": {
+    "header": "Dự án",
+    "title": "Khám phá hành trình của tôi qua các dự án, mỗi dự án đều đánh dấu một bước tiến trong sự trưởng thành và học hỏi của tôi.",
+    "projects": [
+      {
+        "title": "Hệ thống quản lý nhà hàng",
+        "completeTime": "11/2024 - 12/2024",
+        "description": "Ứng dụng quản lý nhà hàng với đặt món, đặt bàn, quản lý thực đơn và thống kê doanh thu. Dự án nhóm 5 người thực hiện theo mô hình MVC.",
+        "skills": ["Handlebars", "Express.js", "Node.js", "MySQL"],
+        "highlight": "Tích hợp xác thực người dùng, phân quyền quản lý/nhân viên, báo cáo doanh thu trực quan.",
+        "githubURL": ["https://github.com/Cong-Chau/Restaurant"]
+      },
+      {
+        "title": "Nền tảng tạo video bằng AI",
+        "completeTime": "05/2025 - 07/2025",
+        "description": "Nền tảng web cho phép tạo video ngắn tự động từ văn bản, tích hợp Text-to-Speech, chuyển ảnh thành video và sinh phụ đề tự động.",
+        "skills": ["React", "Tailwind CSS", "Python", "MongoDB"],
+        "highlight": "Kết hợp frontend React + Tailwind với backend Python xử lý AI, đơn giản hóa quy trình tạo video.",
+        "githubURL": [
+          "https://github.com/Cong-Chau/GenerateVideo/tree/main-chau"
+        ]
+      },
+      {
+        "title": "ACCI Exam Management System",
+        "completeTime": "08/2025 - Now",
+        "description": "Hệ thống quản lý thi chứng chỉ Anh ngữ & Tin học ACCI, hỗ trợ đăng ký, thanh toán, gia hạn, phát hành phiếu dự thi và cấp chứng chỉ.",
+        "skills": [
+          "React",
+          "React Router",
+          "Redux Toolkit",
+          "Tailwind CSS",
+          "Express.js",
+          "Node.js",
+          "MySQL"
+        ],
+        "highlight": "Triển khai FE/BE tách biệt, mô hình hóa đầy đủ quy trình nghiệp vụ từ đăng ký đến cấp chứng chỉ.",
+        "githubURL": [
+          "https://github.com/Cong-Chau/ACCI-Client",
+          "https://github.com/Cong-Chau/ACCI-Server"
+        ]
+      },
+      {
+        "title": "Hệ thống quản lý đại lý",
+        "completeTime": "11/2024 - 12/2024",
+        "description": "Ứng dụng quản lý hàng hóa, nhập - xuất và báo cáo doanh thu. Dự án nhóm 4 người phát triển theo mô hình MVC.",
+        "skills": ["Handlebars", "Express.js", "Node.js", "MySQL"],
+        "highlight": "Thống kê doanh thu trực quan, hỗ trợ quản lý nắm bắt hiệu quả kinh doanh nhanh chóng.",
+        "githubURL": ["https://github.com/Cong-Chau/AgentManager"]
+      },
+      {
+        "title": "Remote Desktop",
+        "completeTime": "11/2024 - 12/2024",
+        "description": "Ứng dụng điều khiển máy tính từ xa trong LAN theo mô hình client-server, truyền hình ảnh màn hình, điều khiển chuột và bàn phím.",
+        "skills": ["C++", "Windows API", "Winsock", "Multithreading"],
+        "highlight": "Ứng dụng lập trình socket, đa luồng để tối ưu hiệu suất truyền dữ liệu, giảm độ trễ.",
+        "githubURL": ["https://github.com/Cong-Chau/RemoteDesktop"]
+      },
+      {
+        "title": "Quản lý khóa học (Console App)",
+        "completeTime": "04/2023 - 06/2023",
+        "description": "Ứng dụng console bằng C++ để quản lý học viên, khóa học, đăng ký học và phân loại kết quả.",
+        "skills": ["C++", "File I/O", "Data Structures"],
+        "highlight": "Ứng dụng đầy đủ CRUD trong môi trường console, rèn luyện kỹ năng cấu trúc dữ liệu và lập trình hướng đối tượng.",
+        "githubURL": ["https://github.com/Cong-Chau/CourseManage"]
+      }
+    ]
+  },
+
+  "contact": {
+    "header": "Liên hệ với tôi",
+    "title1": "Tôi luôn sẵn sàng trao đổi về những dự án mới, ý tưởng sáng tạo hoặc cơ hội để trở thành một phần trong tầm nhìn của bạn. Đừng ngần ngại liên hệ với tôi!",
+    "title2": "Bạn cũng có thể kết nối với tôi qua",
+    "titleSocialMedia": "trang cá nhân",
+    "form": {
+      "name": "Tên đầy đủ",
+      "message": "Nội dung",
+      "btn": "Gửi"
+    }
+  },
+
+  "footer": {
+    "title": "Fullstack developer đam mê tạo ra các giải pháp web sáng tạo và biến ý tưởng thành hiện thực.",
+    "quickLink": {
+      "header": "Truy cập nhanh",
+      "projects": "Dự án",
+      "contact": "Liên hệ"
+    },
+    "connect": "Kết nối",
+    "reserved": "Đa đăng ký bản quyền.",
+    "by": "Thiết kế và phát triển bởi Phan Công Châu"
+  }
+}

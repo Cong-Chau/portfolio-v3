@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Dark mode */
+.bg-linear-gray-black {
+  background: linear-gradient(
+    to right,
+    rgba(230, 230, 230, 0.3),
+    rgba(230, 230, 230, 0.3)
+  );
+}
+
+.bg-dark-overlay {
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(150px);
+  -webkit-backdrop-filter: blur(400px);
+}
+
+.ellipse-dark-1 {
+  background-color: #56008f;
+}
+
+.ellipse-dark-2 {
+  background-color: #0004ff;
+}
+
+.ellipse-dark-3 {
+  background-color: #8f0002;
+}
+
+.ellipse-dark-4 {
+  background-color: #084f89;
+}
+
+/* Light mode */
+.bg-linear-gray-white {
+  background: linear-gradient(
+    to right,
+    rgba(230, 230, 230, 0.3),
+    rgba(255, 255, 255, 0.3)
+  );
+}
+
+.bg-light-overlay {
+  background-color: rgba(183, 183, 183, 0.3);
+  backdrop-filter: blur(150px);
+  -webkit-backdrop-filter: blur(400px);
+}
+
+.ellipse-light-1 {
+  background-color: #c56dff;
+}
+
+.ellipse-light-2 {
+  background-color: #6366ff;
+}
+
+.ellipse-light-3 {
+  background-color: #ff4144;
+}
+
+.ellipse-light-4 {
+  background-color: #44abff;
+}
+
+/* Animation */
+@keyframes float-pulse-rotate-move {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.9;
+  }
+  25% {
+    transform: translate(-100px, 50px) scale(1.05) rotate(90deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(120px, -80px) scale(0.95) rotate(180deg);
+    opacity: 0.85;
+  }
+  75% {
+    transform: translate(-80px, 100px) scale(1.08) rotate(270deg);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    opacity: 0.9;
+  }
+}
+
+.ellipse-light-1,
+.ellipse-light-2,
+.ellipse-light-3,
+.ellipse-light-4,
+.ellipse-dark-1,
+.ellipse-dark-2,
+.ellipse-dark-3,
+.ellipse-dark-4 {
+  animation: float-pulse-rotate-move 10s ease-in-out infinite;
+}
+
+.ellipse-light-1,
+.ellipse-dark-1 {
+  animation-duration: 5s;
+  animation-delay: 0s;
+}
+.ellipse-light-2,
+.ellipse-dark-2 {
+  animation-duration: 6s;
+  animation-delay: 1s;
+}
+.ellipse-light-3,
+.ellipse-dark-3 {
+  animation-duration: 7s;
+  animation-delay: 2s;
+}
+.ellipse-light-4,
+.ellipse-dark-4 {
+  animation-duration: 8s;
+  animation-delay: 3s;
+}
+
+@keyframes bubbleBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-50px); /* chiều cao nảy, thay đổi tùy ý */
+  }
+}

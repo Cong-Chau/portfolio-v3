@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://phancongchau.vercel.app
+
+# Sitemaps
+Sitemap: https://phancongchau.vercel.app/sitemap.xml
