@@ -53,7 +53,61 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
 
 *(Các API ở phần này yêu cầu xác thực - thường là qua Header `Authorization: Bearer <token>` nếu JWT đã được cấu hình trong dự án).*
 
-### 2.1 Quản Lý Thông Tin Cá Nhân (Personal Info)
+### 2.1 Quản Lý Thông Tin Cá Nhân & Upload File
+
+#### Upload Avatar (Ảnh cá nhân)
+- **Method & Endpoint**: `POST /v1/admin/avatar/upload`
+- **Content-Type**: `multipart/form-data`
+- **Form Data (Body)**:
+  - `file`: File ảnh (chấp nhận `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.svg`, `.bmp`, `.avif`, tối đa 10MB)
+- **Response**: `ApiResponse<UploadImageResponse>`
+  ```json
+  {
+    "code": 200,
+    "message": null,
+    "result": {
+      "url": "https://res.cloudinary.com/.../avatar_example.png",
+      "publicId": "portfolio/avatar/avatar_example",
+      "originalFileName": "my_avatar.png",
+      "size": 102400,
+      "width": 500,
+      "height": 500,
+      "format": "png"
+    }
+  }
+  ```
+- **Status Code**: `200 OK`
+- *Ghi chú: API này sau khi upload thành công lên Cloudinary sẽ tự động cập nhật trường `avatar_url` trong bảng `personal_info`.*
+
+#### Upload Hình Ảnh Chung (Projects, Skills, ...)
+- **Method & Endpoint**: `POST /v1/admin/images/upload`
+- **Content-Type**: `multipart/form-data`
+- **Form Data (Body)**:
+  - `file`: File ảnh (tối đa 10MB)
+  - `folder`: (Optional, String) Thư mục trên Cloudinary (mặc định: `portfolio/images`)
+- **Response**: `ApiResponse<UploadImageResponse>`
+- **Status Code**: `200 OK`
+
+#### Upload File CV (PDF)
+- **Method & Endpoint**: `POST /v1/admin/cv/upload`
+- **Content-Type**: `multipart/form-data`
+- **Form Data (Body)**:
+  - `file`: File nhị phân (chỉ chấp nhận `.pdf`, kích thước tối đa 10MB)
+- **Response**: `ApiResponse<UploadCvResponse>`
+  ```json
+  {
+    "code": 200,
+    "message": null,
+    "result": {
+      "url": "https://res.cloudinary.com/.../cv_example.pdf",
+      "publicId": "portfolio/cv/cv_example",
+      "originalFileName": "my_resume.pdf",
+      "size": 524288
+    }
+  }
+  ```
+- **Status Code**: `200 OK`
+- *Ghi chú: API này sau khi upload thành công lên Cloudinary sẽ tự động cập nhật trường `cv_url` trong bảng `personal_info`.*
 
 #### Cập Nhật Thông Tin Cá Nhân
 - **Method & Endpoint**: `PUT /v1/admin/personal`

@@ -18,6 +18,10 @@ public enum ErrorCode {
     ABOUT_NOT_FOUND(2003, "About detail not found", HttpStatus.NOT_FOUND),
     SKILL_NOT_FOUND(2004, "Skill not found", HttpStatus.NOT_FOUND),
     PROJECT_NOT_FOUND(2005, "Project not found", HttpStatus.NOT_FOUND),
+    FILE_EMPTY(3001, "File cannot be empty", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE(3002, "Invalid file type. Only PDF files are allowed", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_FAILED(3003, "Failed to upload file to Cloudinary", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_IMAGE_TYPE(3004, "Invalid image format. Supported formats: JPG, JPEG, PNG, WEBP, GIF, SVG", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;

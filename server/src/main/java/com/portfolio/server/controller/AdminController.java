@@ -9,18 +9,68 @@ import com.portfolio.server.dto.response.AdminProjectResponse;
 import com.portfolio.server.dto.response.ApiResponse;
 import com.portfolio.server.dto.response.PersonalInfoResponse;
 import com.portfolio.server.dto.response.SkillResponse;
+import com.portfolio.server.dto.response.UploadCvResponse;
+import com.portfolio.server.dto.response.UploadImageResponse;
 import com.portfolio.server.service.AdminService;
+import com.portfolio.server.service.ImageService;
+import com.portfolio.server.service.PdfService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/v1/admin")
 @RequiredArgsConstructor
+@Tag(name = "Admin", description = "Admin Management APIs")
 public class AdminController {
 
     private final AdminService adminService;
+    private final PdfService pdfService;
+    private final ImageService imageService;
+
+    @PostMapping(value = "/cv/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload file CV PDF lên Cloudinary")
+    public ApiResponse<UploadCvResponse> uploadCv(
+            @Parameter(description = "File CV định dạng PDF", required = true)
+            @RequestParam("file") MultipartFile file) {
+        UploadCvResponse result = pdfService.uploadCv(file);
+        return ApiResponse.<UploadCvResponse>builder()
+                .code(HttpStatus.OK.value())
+                .result(result)
+                .build();
+    }
+
+    @PostMapping(value = "/avatar/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload ảnh Avatar lên Cloudinary")
+    public ApiResponse<UploadImageResponse> uploadAvatar(
+            @Parameter(description = "File ảnh Avatar (JPG, PNG, WEBP, ...)", required = true)
+            @RequestParam("file") MultipartFile file) {
+        UploadImageResponse result = imageService.uploadAvatar(file);
+        return ApiResponse.<UploadImageResponse>builder()
+                .code(HttpStatus.OK.value())
+                .result(result)
+                .build();
+    }
+
+    @PostMapping(value = "/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload ảnh chung lên Cloudinary")
+    public ApiResponse<UploadImageResponse> uploadImage(
+            @Parameter(description = "File ảnh (JPG, PNG, WEBP, ...)", required = true)
+            @RequestParam("file") MultipartFile file,
+            @Parameter(description = "Thư mục lưu trữ trên Cloudinary (mặc định: portfolio/images)", required = false)
+            @RequestParam(value = "folder", required = false) String folder) {
+        UploadImageResponse result = imageService.uploadImage(file, folder);
+        return ApiResponse.<UploadImageResponse>builder()
+                .code(HttpStatus.OK.value())
+                .result(result)
+                .build();
+    }
 
     @PutMapping("/personal")
     public ApiResponse<PersonalInfoResponse> updatePersonalInfo(

@@ -15,6 +15,16 @@ spring:
     enabled: true
     locations: classpath:db/migration
     validate-on-migrate: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:demo}
+  api-key: ${CLOUDINARY_API_KEY:demo}
+  api-secret: ${CLOUDINARY_API_SECRET:demo}
+  upload-preset: ${CLOUDINARY_UPLOAD_PRESET:}
 
 server:
   port: 8080

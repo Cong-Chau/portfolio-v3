@@ -66,4 +66,15 @@ export async function apiDelete(url: string): Promise<void> {
   await apiClient.delete(url);
 }
 
+export async function apiUpload<T>(url: string, file: File): Promise<T> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await apiClient.post<ApiResponse<T>>(url, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data.result;
+}
+
 export default apiClient;

@@ -22,6 +22,23 @@ export interface PersonalInfoRequest {
   cvUrl?: string;
 }
 
+export interface UploadCvResponse {
+  url: string;
+  publicId: string;
+  originalFileName: string;
+  size: number;
+}
+
+export interface UploadImageResponse {
+  url: string;
+  publicId: string;
+  originalFileName: string;
+  size: number;
+  width?: number;
+  height?: number;
+  format?: string;
+}
+
 export interface PersonalInfoResponse {
   name: string;
   title: string;

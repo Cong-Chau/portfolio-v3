@@ -54,27 +54,30 @@ export const Drawer: React.FC<DrawerProps> = ({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative z-10 flex h-full flex-col bg-surface shadow-2xl overflow-hidden"
+            className="relative z-10 flex h-full max-w-full flex-col bg-surface shadow-2xl overflow-hidden border-l border-border"
             style={{ width }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 sm:py-4 shrink-0 bg-surface">
               {title && (
-                <h3 className="text-base font-semibold text-text-primary">
+                <h3 className="text-sm sm:text-base font-semibold text-text-primary truncate pr-2">
                   {title}
                 </h3>
               )}
               <button
                 onClick={onClose}
-                className="ml-auto rounded p-1 text-text-muted transition-colors hover:bg-border/40 hover:text-text-primary"
+                className="ml-auto rounded-lg p-1.5 text-text-muted transition-colors hover:bg-border/40 hover:text-text-primary shrink-0"
                 id="drawer-close-btn"
+                aria-label="Đóng"
               >
                 <X size={16} />
               </button>
             </div>
 
             {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+              {children}
+            </div>
           </motion.div>
         </div>
       )}
