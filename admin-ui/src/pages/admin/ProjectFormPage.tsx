@@ -6,6 +6,7 @@ import { Card, CardHeader } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { BilingualField } from "../../components/common/BilingualField";
+import { BilingualMonthYearPicker } from "../../components/common/BilingualMonthYearPicker";
 import { SkillTagPicker } from "../../components/projects/SkillTagPicker";
 import { DynamicUrlList } from "../../components/projects/DynamicUrlList";
 import { CardSkeleton } from "../../components/ui/Skeleton";
@@ -141,7 +142,7 @@ function ProjectForm({
                 errorVi={errors.titleVi}
                 errorEn={errors.titleEn}
               />
-              <BilingualField
+              <BilingualMonthYearPicker
                 labelVi="Thời gian (VI)"
                 labelEn="Completion time (EN)"
                 valueVi={form.completeTimeVi}
