@@ -42,7 +42,7 @@ export const DynamicUrlList: React.FC<DynamicUrlListProps> = ({
   };
 
   const handleReorder = (reordered: UrlRow[]) => {
-    onChange(reordered.map(({ _key: _, ...u }) => u));
+    onChange(reordered.map(({ labelVi, labelEn, url }) => ({ labelVi, labelEn, url })));
   };
 
   return (

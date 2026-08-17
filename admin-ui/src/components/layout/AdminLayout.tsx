@@ -1,19 +1,10 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { ToastContainer } from "../common/Toast";
-
-interface AdminLayoutContextValue {
-  setSaveSlot: (node: React.ReactNode) => void;
-}
-
-const AdminLayoutContext = createContext<AdminLayoutContextValue>({
-  setSaveSlot: () => {},
-});
-
-export const useAdminLayout = () => useContext(AdminLayoutContext);
+import { AdminLayoutContext } from "./AdminLayoutContext";
 
 const pageVariants = {
   initial: { opacity: 0, y: 10 },

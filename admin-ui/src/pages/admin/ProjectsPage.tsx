@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useProjects } from "../../hooks/useProjects";
-import { useAdminLayout } from "../../components/layout/AdminLayout";
+import { useAdminLayout } from "../../components/layout/AdminLayoutContext";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";

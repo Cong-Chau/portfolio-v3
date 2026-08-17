@@ -11,8 +11,6 @@ export function usePersonal() {
   const [error, setError] = useState<string | null>(null);
 
   const fetch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
       const res = await personalService.get();
       setData(res);
@@ -25,9 +23,38 @@ export function usePersonal() {
     }
   }, [addToast]);
 
-  useEffect(() => {
-    fetch();
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    await fetch();
   }, [fetch]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function load() {
+      try {
+        const res = await personalService.get();
+        if (!ignore) {
+          setData(res);
+        }
+      } catch (err) {
+        if (!ignore) {
+          const msg =
+            err instanceof Error ? err.message : "Không tải được dữ liệu";
+          setError(msg);
+          addToast(msg, "error");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [addToast]);
 
   const save = async (payload: PersonalInfoRequest) => {
     setSaving(true);
@@ -45,5 +72,5 @@ export function usePersonal() {
     }
   };
 
-  return { data, loading, saving, error, save, refetch: fetch };
+  return { data, loading, saving, error, save, refetch };
 }

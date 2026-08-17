@@ -1,15 +1,6 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { useState } from "react";
 import type { Lang } from "../types/api";
-
-interface LanguageContextValue {
-  lang: Lang;
-  toggle: () => void;
-}
-
-const LanguageContext = createContext<LanguageContextValue>({
-  lang: "vi",
-  toggle: () => {},
-});
+import { LanguageContext } from "./LanguageContext";
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -22,5 +13,3 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     </LanguageContext.Provider>
   );
 };
-
-export const useLang = () => useContext(LanguageContext);

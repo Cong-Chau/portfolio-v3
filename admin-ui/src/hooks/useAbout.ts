@@ -10,7 +10,6 @@ export function useAbout() {
   const [saving, setSaving] = useState(false);
 
   const fetch = useCallback(async () => {
-    setLoading(true);
     try {
       const data = await aboutService.list();
       setItems(data.sort((a, b) => a.orderIndex - b.orderIndex));
@@ -24,9 +23,37 @@ export function useAbout() {
     }
   }, [addToast]);
 
-  useEffect(() => {
-    fetch();
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    await fetch();
   }, [fetch]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function load() {
+      try {
+        const data = await aboutService.list();
+        if (!ignore) {
+          setItems(data.sort((a, b) => a.orderIndex - b.orderIndex));
+        }
+      } catch (err) {
+        if (!ignore) {
+          addToast(
+            err instanceof Error ? err.message : "Không tải được dữ liệu",
+            "error",
+          );
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [addToast]);
 
   const create = async (payload: AboutDetailRequest) => {
     setSaving(true);
@@ -88,5 +115,5 @@ export function useAbout() {
     }
   };
 
-  return { items, loading, saving, create, update, remove, reorder, refetch: fetch };
+  return { items, loading, saving, create, update, remove, reorder, refetch };
 }

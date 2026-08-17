@@ -11,7 +11,6 @@ export function useProjects() {
   const [saving, setSaving] = useState(false);
 
   const fetch = useCallback(async () => {
-    setLoading(true);
     try {
       const skillGroups = await skillsService.list();
       const allSkills = skillGroups.flatMap((g) => g.skills);
@@ -24,9 +23,39 @@ export function useProjects() {
     }
   }, [addToast]);
 
-  useEffect(() => {
-    fetch();
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    await fetch();
   }, [fetch]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function load() {
+      try {
+        const skillGroups = await skillsService.list();
+        const allSkills = skillGroups.flatMap((g) => g.skills);
+        const data = await projectsService.list(allSkills);
+        if (!ignore) {
+          setProjects(data.sort((a, b) => a.orderIndex - b.orderIndex));
+        }
+      } catch (err) {
+        if (!ignore) {
+          addToast(
+            err instanceof Error ? err.message : "Không tải được dữ liệu",
+            "error",
+          );
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [addToast]);
 
   const create = async (payload: ProjectRequest) => {
     setSaving(true);
@@ -72,5 +101,5 @@ export function useProjects() {
 
   const getById = (id: number) => projects.find((p) => p.id === id) ?? null;
 
-  return { projects, loading, saving, create, update, remove, getById, refetch: fetch };
+  return { projects, loading, saving, create, update, remove, getById, refetch };
 }

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useAbout } from "../../hooks/useAbout";
-import { useAdminLayout } from "../../components/layout/AdminLayout";
+import { useAdminLayout } from "../../components/layout/AdminLayoutContext";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Textarea } from "../../components/ui/Textarea";
@@ -31,29 +31,29 @@ interface AboutDrawerProps {
   saving: boolean;
 }
 
-function AboutDrawer({
-  open,
-  onClose,
+interface AboutDrawerFormProps {
+  initial?: AboutDetailResponse | null;
+  onSave: (form: AboutForm) => Promise<boolean>;
+  saving: boolean;
+  onClose: () => void;
+}
+
+function AboutDrawerForm({
   initial,
   onSave,
   saving,
-}: AboutDrawerProps) {
-  const EMPTY: AboutForm = { contentVi: "", contentEn: "", orderIndex: 0 };
-  const [form, setForm] = useState<AboutForm>(EMPTY);
+  onClose,
+}: AboutDrawerFormProps) {
+  const [form, setForm] = useState<AboutForm>(() =>
+    initial
+      ? {
+          contentVi: initial.contentVi,
+          contentEn: initial.contentEn,
+          orderIndex: initial.orderIndex,
+        }
+      : { contentVi: "", contentEn: "", orderIndex: 0 },
+  );
   const [errors, setErrors] = useState<AboutErrors>({});
-
-  useEffect(() => {
-    setForm(
-      initial
-        ? {
-            contentVi: initial.contentVi,
-            contentEn: initial.contentEn,
-            orderIndex: initial.orderIndex,
-          }
-        : EMPTY,
-    );
-    setErrors({});
-  }, [initial, open]);
 
   const set = <K extends keyof AboutForm>(k: K, v: AboutForm[K]) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -71,52 +71,72 @@ function AboutDrawer({
   };
 
   return (
+    <div className="space-y-5">
+      <Textarea
+        label="Nội dung (VI)"
+        value={form.contentVi}
+        onChange={(e) => set("contentVi", e.target.value)}
+        required
+        error={errors.contentVi}
+        rows={5}
+        id="about-content-vi"
+      />
+      <Textarea
+        label="Content (EN)"
+        value={form.contentEn}
+        onChange={(e) => set("contentEn", e.target.value)}
+        required
+        error={errors.contentEn}
+        rows={5}
+        id="about-content-en"
+      />
+      <Input
+        label="Thứ tự"
+        type="number"
+        value={String(form.orderIndex)}
+        onChange={(e) => set("orderIndex", parseInt(e.target.value) || 0)}
+        error={errors.orderIndex}
+        id="about-order"
+      />
+      <div className="flex gap-3 pt-2">
+        <Button variant="secondary" className="flex-1" onClick={onClose}>
+          Hủy
+        </Button>
+        <Button
+          className="flex-1"
+          onClick={handleSave}
+          loading={saving}
+          id="about-save-btn"
+        >
+          Lưu
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AboutDrawer({
+  open,
+  onClose,
+  initial,
+  onSave,
+  saving,
+}: AboutDrawerProps) {
+  return (
     <Drawer
       open={open}
       onClose={onClose}
       title={initial ? "Sửa giới thiệu" : "Thêm giới thiệu"}
     >
-      <div className="space-y-5">
-        <Textarea
-          label="Nội dung (VI)"
-          value={form.contentVi}
-          onChange={(e) => set("contentVi", e.target.value)}
-          required
-          error={errors.contentVi}
-          rows={5}
-          id="about-content-vi"
+      {open && (
+        <AboutDrawerForm
+          key={initial ? `edit-${initial.id}` : "new"}
+          initial={initial}
+          onClose={onClose}
+          onSave={onSave}
+          saving={saving}
         />
-        <Textarea
-          label="Content (EN)"
-          value={form.contentEn}
-          onChange={(e) => set("contentEn", e.target.value)}
-          required
-          error={errors.contentEn}
-          rows={5}
-          id="about-content-en"
-        />
-        <Input
-          label="Thứ tự"
-          type="number"
-          value={String(form.orderIndex)}
-          onChange={(e) => set("orderIndex", parseInt(e.target.value) || 0)}
-          error={errors.orderIndex}
-          id="about-order"
-        />
-        <div className="flex gap-3 pt-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
-            Hủy
-          </Button>
-          <Button
-            className="flex-1"
-            onClick={handleSave}
-            loading={saving}
-            id="about-save-btn"
-          >
-            Lưu
-          </Button>
-        </div>
-      </div>
+      )}
     </Drawer>
   );
 }

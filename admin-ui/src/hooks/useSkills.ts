@@ -10,7 +10,6 @@ export function useSkills() {
   const [saving, setSaving] = useState(false);
 
   const fetch = useCallback(async () => {
-    setLoading(true);
     try {
       const data = await skillsService.list();
       setGroups(data);
@@ -21,9 +20,37 @@ export function useSkills() {
     }
   }, [addToast]);
 
-  useEffect(() => {
-    fetch();
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    await fetch();
   }, [fetch]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function load() {
+      try {
+        const data = await skillsService.list();
+        if (!ignore) {
+          setGroups(data);
+        }
+      } catch (err) {
+        if (!ignore) {
+          addToast(
+            err instanceof Error ? err.message : "Không tải được dữ liệu",
+            "error",
+          );
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [addToast]);
 
   // Flat list of all skills (for SkillTagPicker)
   const allSkills: SkillResponse[] = groups.flatMap((g) => g.skills);
@@ -92,5 +119,5 @@ export function useSkills() {
     }
   };
 
-  return { groups, allSkills, loading, saving, create, update, remove, reorderInCategory, refetch: fetch };
+  return { groups, allSkills, loading, saving, create, update, remove, reorderInCategory, refetch };
 }

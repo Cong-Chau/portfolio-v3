@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useProjects } from "../../hooks/useProjects";
 import { useSkills } from "../../hooks/useSkills";
@@ -9,7 +9,7 @@ import { BilingualField } from "../../components/common/BilingualField";
 import { SkillTagPicker } from "../../components/projects/SkillTagPicker";
 import { DynamicUrlList } from "../../components/projects/DynamicUrlList";
 import { CardSkeleton } from "../../components/ui/Skeleton";
-import type { ProjectRequest, ProjectUrl } from "../../types/api";
+import type { ProjectRequest, ProjectUrl, SkillResponse } from "../../types/api";
 import { Save, ArrowLeft } from "lucide-react";
 
 const URL_RE = /^https?:\/\/.+/;
@@ -69,45 +69,24 @@ const EMPTY: ProjectRequest = {
   urls: [],
 };
 
-export default function ProjectFormPage() {
-  const { id } = useParams<{ id: string }>();
-  const isEdit = Boolean(id);
+interface ProjectFormProps {
+  initialForm: ProjectRequest;
+  isEdit: boolean;
+  allSkills: SkillResponse[];
+  saving: boolean;
+  onSubmit: (form: ProjectRequest) => Promise<boolean>;
+}
+
+function ProjectForm({
+  initialForm,
+  isEdit,
+  allSkills,
+  saving,
+  onSubmit,
+}: ProjectFormProps) {
   const navigate = useNavigate();
-
-  const { projects, loading: projectsLoading, create, update, saving } =
-    useProjects();
-  const { allSkills, loading: skillsLoading } = useSkills();
-
-  const [form, setForm] = useState<ProjectRequest>(EMPTY);
+  const [form, setForm] = useState<ProjectRequest>(initialForm);
   const [errors, setErrors] = useState<Errors>({});
-  const [initialized, setInitialized] = useState(false);
-
-  const existing = useMemo(
-    () => (isEdit && id ? projects.find((p) => p.id === parseInt(id)) : null),
-    [projects, id, isEdit],
-  );
-
-  // Pre-fill form when editing
-  useEffect(() => {
-    if (!initialized && existing) {
-      setForm({
-        titleVi: existing.titleVi,
-        titleEn: existing.titleEn,
-        completeTimeVi: existing.completeTimeVi,
-        completeTimeEn: existing.completeTimeEn,
-        descriptionVi: existing.descriptionVi,
-        descriptionEn: existing.descriptionEn,
-        highlightVi: existing.highlightVi,
-        highlightEn: existing.highlightEn,
-        orderIndex: existing.orderIndex,
-        skillIds: existing.skills.map((s) => s.id),
-        urls: existing.urls,
-      });
-      setInitialized(true);
-    } else if (!isEdit) {
-      setInitialized(true);
-    }
-  }, [existing, initialized, isEdit]);
 
   const set = <K extends keyof ProjectRequest>(
     key: K,
@@ -123,33 +102,8 @@ export default function ProjectFormPage() {
       setErrors(errs);
       return;
     }
-    let result;
-    if (isEdit && id) {
-      result = await update(parseInt(id), form);
-    } else {
-      result = await create(form);
-    }
-    if (result) {
-      navigate("/admin/projects");
-    }
+    await onSubmit(form);
   };
-
-  const isLoading = projectsLoading || skillsLoading || !initialized;
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-[1fr_360px] gap-6">
-        <div className="space-y-4">
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-        <div className="space-y-4">
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -289,5 +243,79 @@ export default function ProjectFormPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProjectFormPage() {
+  const { id } = useParams<{ id: string }>();
+  const isEdit = Boolean(id);
+  const navigate = useNavigate();
+
+  const { projects, loading: projectsLoading, create, update, saving } =
+    useProjects();
+  const { allSkills, loading: skillsLoading } = useSkills();
+
+  const existing = useMemo(
+    () => (isEdit && id ? projects.find((p) => p.id === parseInt(id)) : null),
+    [projects, id, isEdit],
+  );
+
+  const isLoading =
+    projectsLoading || skillsLoading || (isEdit && !existing && projects.length === 0);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-[1fr_360px] gap-6">
+        <div className="space-y-4">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <div className="space-y-4">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  const initialForm: ProjectRequest = existing
+    ? {
+        titleVi: existing.titleVi,
+        titleEn: existing.titleEn,
+        completeTimeVi: existing.completeTimeVi,
+        completeTimeEn: existing.completeTimeEn,
+        descriptionVi: existing.descriptionVi,
+        descriptionEn: existing.descriptionEn,
+        highlightVi: existing.highlightVi,
+        highlightEn: existing.highlightEn,
+        orderIndex: existing.orderIndex,
+        skillIds: existing.skills.map((s) => s.id),
+        urls: existing.urls,
+      }
+    : EMPTY;
+
+  const handleSubmit = async (form: ProjectRequest) => {
+    let result;
+    if (isEdit && id) {
+      result = await update(parseInt(id), form);
+    } else {
+      result = await create(form);
+    }
+    if (result) {
+      navigate("/admin/projects");
+      return true;
+    }
+    return false;
+  };
+
+  return (
+    <ProjectForm
+      key={existing ? `edit-${existing.id}` : "create"}
+      initialForm={initialForm}
+      isEdit={isEdit}
+      allSkills={allSkills}
+      saving={saving}
+      onSubmit={handleSubmit}
+    />
   );
 }

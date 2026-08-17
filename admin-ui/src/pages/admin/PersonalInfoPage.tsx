@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { usePersonal } from "../../hooks/usePersonal";
-import { useAdminLayout } from "../../components/layout/AdminLayout";
+import { useAdminLayout } from "../../components/layout/AdminLayoutContext";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
@@ -57,34 +57,43 @@ const EMPTY: PersonalInfoRequest = {
   cvUrl: "",
 };
 
-export default function PersonalInfoPage() {
-  const { data, loading, saving, save } = usePersonal();
+function formatInitialData(data: PersonalInfoRequest | null): PersonalInfoRequest {
+  if (!data) return EMPTY;
+  return {
+    name: data.name ?? "",
+    titleVi: data.titleVi ?? "",
+    titleEn: data.titleEn ?? "",
+    summaryVi: data.summaryVi ?? "",
+    summaryEn: data.summaryEn ?? "",
+    email: data.email ?? "",
+    phone: data.phone ?? "",
+    locationVi: data.locationVi ?? "",
+    locationEn: data.locationEn ?? "",
+    linkedinUrl: data.linkedinUrl ?? "",
+    githubUrl: data.githubUrl ?? "",
+    avatarUrl: data.avatarUrl ?? "",
+    cvUrl: data.cvUrl ?? "",
+  };
+}
+
+interface PersonalInfoFormProps {
+  initialData: PersonalInfoRequest | null;
+  saving: boolean;
+  onSave: (payload: PersonalInfoRequest) => Promise<boolean>;
+}
+
+function PersonalInfoForm({
+  initialData,
+  saving,
+  onSave,
+}: PersonalInfoFormProps) {
   const { setSaveSlot } = useAdminLayout();
-  const [form, setForm] = useState<PersonalInfoRequest>(EMPTY);
+  const [form, setForm] = useState<PersonalInfoRequest>(() =>
+    formatInitialData(initialData),
+  );
   const [errors, setErrors] = useState<Errors>({});
   const [dirty, setDirty] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-
-  useEffect(() => {
-    if (data) {
-      setForm({
-        name: data.name ?? "",
-        titleVi: data.titleVi ?? "",
-        titleEn: data.titleEn ?? "",
-        summaryVi: data.summaryVi ?? "",
-        summaryEn: data.summaryEn ?? "",
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        locationVi: data.locationVi ?? "",
-        locationEn: data.locationEn ?? "",
-        linkedinUrl: data.linkedinUrl ?? "",
-        githubUrl: data.githubUrl ?? "",
-        avatarUrl: data.avatarUrl ?? "",
-        cvUrl: data.cvUrl ?? "",
-      });
-      setDirty(false);
-    }
-  }, [data]);
 
   const set = <K extends keyof PersonalInfoRequest>(
     key: K,
@@ -97,23 +106,7 @@ export default function PersonalInfoPage() {
   };
 
   const handleCancel = () => {
-    if (data) {
-      setForm({
-        name: data.name ?? "",
-        titleVi: data.titleVi ?? "",
-        titleEn: data.titleEn ?? "",
-        summaryVi: data.summaryVi ?? "",
-        summaryEn: data.summaryEn ?? "",
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        locationVi: data.locationVi ?? "",
-        locationEn: data.locationEn ?? "",
-        linkedinUrl: data.linkedinUrl ?? "",
-        githubUrl: data.githubUrl ?? "",
-        avatarUrl: data.avatarUrl ?? "",
-        cvUrl: data.cvUrl ?? "",
-      });
-    }
+    setForm(formatInitialData(initialData));
     setErrors({});
     setDirty(false);
     setIsEditing(false);
@@ -125,7 +118,7 @@ export default function PersonalInfoPage() {
       setErrors(errs);
       return;
     }
-    const ok = await save(form);
+    const ok = await onSave(form);
     if (ok) {
       setDirty(false);
       setIsEditing(false);
@@ -177,16 +170,6 @@ export default function PersonalInfoPage() {
     return () => setSaveSlot(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, dirty, saving, form]);
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <CardSkeleton />
-        <CardSkeleton />
-        <CardSkeleton />
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -343,5 +326,28 @@ export default function PersonalInfoPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function PersonalInfoPage() {
+  const { data, loading, saving, save } = usePersonal();
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    );
+  }
+
+  return (
+    <PersonalInfoForm
+      key={data ? "loaded" : "empty"}
+      initialData={data}
+      saving={saving}
+      onSave={save}
+    />
   );
 }

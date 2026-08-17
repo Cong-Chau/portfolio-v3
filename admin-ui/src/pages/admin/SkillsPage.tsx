@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useSkills } from "../../hooks/useSkills";
-import { useAdminLayout } from "../../components/layout/AdminLayout";
+import { useAdminLayout } from "../../components/layout/AdminLayoutContext";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -46,29 +46,35 @@ interface SkillModalProps {
   saving: boolean;
 }
 
-function SkillModal({ open, onClose, initial, onSave, saving }: SkillModalProps) {
-  const EMPTY: SkillForm = {
-    title: "",
-    iconClass: "",
-    category: SkillCategory.TECH,
-    orderIndex: 0,
-  };
-  const [form, setForm] = useState<SkillForm>(EMPTY);
-  const [errors, setErrors] = useState<SkillErrors>({});
+interface SkillModalFormProps {
+  initial?: SkillResponse | null;
+  onSave: (form: SkillForm) => Promise<boolean>;
+  saving: boolean;
+  onClose: () => void;
+}
 
-  useEffect(() => {
-    setForm(
-      initial
-        ? {
-            title: initial.title,
-            iconClass: initial.iconClass,
-            category: initial.category ?? SkillCategory.TECH,
-            orderIndex: initial.orderIndex ?? 0,
-          }
-        : EMPTY,
-    );
-    setErrors({});
-  }, [initial, open]);
+function SkillModalForm({
+  initial,
+  onSave,
+  saving,
+  onClose,
+}: SkillModalFormProps) {
+  const [form, setForm] = useState<SkillForm>(() =>
+    initial
+      ? {
+          title: initial.title,
+          iconClass: initial.iconClass,
+          category: initial.category ?? SkillCategory.TECH,
+          orderIndex: initial.orderIndex ?? 0,
+        }
+      : {
+          title: "",
+          iconClass: "",
+          category: SkillCategory.TECH,
+          orderIndex: 0,
+        },
+  );
+  const [errors, setErrors] = useState<SkillErrors>({});
 
   const set = <K extends keyof SkillForm>(k: K, v: SkillForm[K]) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -86,70 +92,90 @@ function SkillModal({ open, onClose, initial, onSave, saving }: SkillModalProps)
   };
 
   return (
+    <div className="space-y-5">
+      <Input
+        label="Tên kỹ năng"
+        value={form.title}
+        onChange={(e) => set("title", e.target.value)}
+        required
+        error={errors.title}
+        maxLength={50}
+        id="skill-title"
+      />
+      <div>
+        <Input
+          label="Icon Class"
+          value={form.iconClass}
+          onChange={(e) => set("iconClass", e.target.value)}
+          required
+          error={errors.iconClass}
+          maxLength={100}
+          placeholder="devicon-react-original colored"
+          id="skill-icon-class"
+        />
+        {form.iconClass && (
+          <div className="mt-2 flex items-center gap-2">
+            <i className={`${form.iconClass} text-2xl`} />
+            <span className="text-xs text-text-muted">Preview</span>
+          </div>
+        )}
+      </div>
+      <Select
+        label="Danh mục"
+        value={form.category}
+        onChange={(e) => set("category", e.target.value as SkillCategory)}
+        options={CATEGORY_OPTIONS}
+        required
+        error={errors.category}
+        id="skill-category"
+      />
+      <Input
+        label="Thứ tự"
+        type="number"
+        value={String(form.orderIndex)}
+        onChange={(e) => set("orderIndex", parseInt(e.target.value) || 0)}
+        error={errors.orderIndex}
+        id="skill-order"
+      />
+      <div className="flex gap-3 pt-2">
+        <Button variant="secondary" className="flex-1" onClick={onClose}>
+          Hủy
+        </Button>
+        <Button
+          className="flex-1"
+          onClick={handleSave}
+          loading={saving}
+          id="skill-save-btn"
+        >
+          Lưu
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SkillModal({
+  open,
+  onClose,
+  initial,
+  onSave,
+  saving,
+}: SkillModalProps) {
+  return (
     <Modal
       open={open}
       onClose={onClose}
       title={initial ? "Sửa kỹ năng" : "Thêm kỹ năng"}
     >
-      <div className="space-y-5">
-        <Input
-          label="Tên kỹ năng"
-          value={form.title}
-          onChange={(e) => set("title", e.target.value)}
-          required
-          error={errors.title}
-          maxLength={50}
-          id="skill-title"
+      {open && (
+        <SkillModalForm
+          key={initial ? `edit-${initial.id}` : "new"}
+          initial={initial}
+          onClose={onClose}
+          onSave={onSave}
+          saving={saving}
         />
-        <div>
-          <Input
-            label="Icon Class"
-            value={form.iconClass}
-            onChange={(e) => set("iconClass", e.target.value)}
-            required
-            error={errors.iconClass}
-            maxLength={100}
-            placeholder="devicon-react-original colored"
-            id="skill-icon-class"
-          />
-          {form.iconClass && (
-            <div className="mt-2 flex items-center gap-2">
-              <i className={`${form.iconClass} text-2xl`} />
-              <span className="text-xs text-text-muted">Preview</span>
-            </div>
-          )}
-        </div>
-        <Select
-          label="Danh mục"
-          value={form.category}
-          onChange={(e) => set("category", e.target.value as SkillCategory)}
-          options={CATEGORY_OPTIONS}
-          required
-          error={errors.category}
-          id="skill-category"
-        />
-        <Input
-          label="Thứ tự"
-          type="number"
-          value={String(form.orderIndex)}
-          onChange={(e) => set("orderIndex", parseInt(e.target.value) || 0)}
-          error={errors.orderIndex}
-          id="skill-order"
-        />
-        <div className="flex gap-3 pt-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
-            Hủy
-          </Button>
-          <Button
-            className="flex-1"
-            onClick={handleSave}
-            loading={saving}
-            id="skill-save-btn"
-          >
-            Lưu
-          </Button>
-        </div>
-      </div>
+      )}
     </Modal>
   );
 }
