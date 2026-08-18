@@ -26,6 +26,11 @@ cloudinary:
   api-secret: ${CLOUDINARY_API_SECRET:demo}
   upload-preset: ${CLOUDINARY_UPLOAD_PRESET:}
 
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
+  api-url: https://generativelanguage.googleapis.com/v1beta/models
+
 server:
   port: 8080
   servlet:

@@ -22,6 +22,7 @@ public class AdminProjectResponse {
     private String highlightVi;
     private String highlightEn;
     private Integer orderIndex;
+    private Boolean isVisible;
     private List<SkillResponse> skills;
     private List<AdminProjectUrlResponse> urls;
 }

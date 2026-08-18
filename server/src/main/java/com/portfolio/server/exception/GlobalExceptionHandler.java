@@ -38,6 +38,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(org.springframework.http.converter.HttpMessageNotReadableException exception) {
+        log.warn("Malformed JSON request: {}", exception.getMessage());
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .code(org.springframework.http.HttpStatus.BAD_REQUEST.value())
+                .message("Malformed JSON request. Please ensure valid JSON format without comments (//).")
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception exception) {
         log.error("Uncategorized exception: {}", exception.getMessage(), exception);

@@ -22,6 +22,9 @@ public enum ErrorCode {
     INVALID_FILE_TYPE(3002, "Invalid file type. Only PDF files are allowed", HttpStatus.BAD_REQUEST),
     FILE_UPLOAD_FAILED(3003, "Failed to upload file to Cloudinary", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_IMAGE_TYPE(3004, "Invalid image format. Supported formats: JPG, JPEG, PNG, WEBP, GIF, SVG", HttpStatus.BAD_REQUEST),
+    GEMINI_API_KEY_MISSING(4001, "Gemini API key is not configured", HttpStatus.INTERNAL_SERVER_ERROR),
+    TRANSLATION_FAILED(4002, "Failed to translate text with Gemini LLM", HttpStatus.BAD_GATEWAY),
+    GEMINI_QUOTA_EXCEEDED(4003, "Gemini API quota exceeded or rate limited", HttpStatus.TOO_MANY_REQUESTS),
     UNCATEGORIZED(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;

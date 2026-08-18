@@ -5,9 +5,9 @@ import com.portfolio.server.dto.request.PersonalInfoRequest;
 import com.portfolio.server.dto.request.ProjectRequest;
 import com.portfolio.server.dto.request.SkillRequest;
 import com.portfolio.server.dto.response.AboutDetailResponse;
+import com.portfolio.server.dto.response.AdminPersonalInfoResponse;
 import com.portfolio.server.dto.response.AdminProjectResponse;
 import com.portfolio.server.dto.response.AdminProjectUrlResponse;
-import com.portfolio.server.dto.response.PersonalInfoResponse;
 import com.portfolio.server.dto.response.SkillResponse;
 import com.portfolio.server.entity.AboutDetail;
 import com.portfolio.server.entity.PersonalInfo;
@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +43,17 @@ public class AdminServiceImpl implements AdminService {
     private final ProjectUrlRepository projectUrlRepository;
 
     @Override
+    public AdminPersonalInfoResponse getPersonalInfo() {
+        PersonalInfo personalInfo = personalInfoRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.PERSONAL_INFO_NOT_FOUND));
+        return mapToAdminPersonalResponse(personalInfo);
+    }
+
+    @Override
     @Transactional
-    public PersonalInfoResponse updatePersonalInfo(PersonalInfoRequest request) {
+    public AdminPersonalInfoResponse updatePersonalInfo(PersonalInfoRequest request) {
         PersonalInfo personalInfo = personalInfoRepository.findAll()
                 .stream()
                 .findFirst()
@@ -65,17 +75,20 @@ public class AdminServiceImpl implements AdminService {
 
         PersonalInfo saved = personalInfoRepository.save(personalInfo);
 
-        return mapToResponse(saved);
+        return mapToAdminPersonalResponse(saved);
     }
 
-    private PersonalInfoResponse mapToResponse(PersonalInfo personalInfo) {
-        return PersonalInfoResponse.builder()
+    private AdminPersonalInfoResponse mapToAdminPersonalResponse(PersonalInfo personalInfo) {
+        return AdminPersonalInfoResponse.builder()
                 .name(personalInfo.getName())
-                .title(personalInfo.getTitleVi())
-                .summary(personalInfo.getSummaryVi())
+                .titleVi(personalInfo.getTitleVi())
+                .titleEn(personalInfo.getTitleEn())
+                .summaryVi(personalInfo.getSummaryVi())
+                .summaryEn(personalInfo.getSummaryEn())
                 .email(personalInfo.getEmail())
                 .phone(personalInfo.getPhone())
-                .location(personalInfo.getLocationVi())
+                .locationVi(personalInfo.getLocationVi())
+                .locationEn(personalInfo.getLocationEn())
                 .linkedinUrl(personalInfo.getLinkedinUrl())
                 .githubUrl(personalInfo.getGithubUrl())
                 .avatarUrl(personalInfo.getAvatarUrl())
@@ -86,6 +99,13 @@ public class AdminServiceImpl implements AdminService {
     // -------------------------------------------------------------------------
     // About
     // -------------------------------------------------------------------------
+
+    @Override
+    public List<AboutDetailResponse> getAbouts() {
+        return aboutDetailRepository.findAllByOrderByOrderIndexAsc().stream()
+                .map(this::mapAboutToResponse)
+                .toList();
+    }
 
     @Override
     @Transactional
@@ -137,6 +157,13 @@ public class AdminServiceImpl implements AdminService {
     // -------------------------------------------------------------------------
 
     @Override
+    public List<SkillResponse> getSkills() {
+        return skillRepository.findAllByOrderByOrderIndexAsc().stream()
+                .map(this::mapSkillToResponse)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public SkillResponse createSkill(SkillRequest request) {
         Skill skill = Skill.builder()
@@ -155,6 +182,8 @@ public class AdminServiceImpl implements AdminService {
                 .id(skill.getId())
                 .title(skill.getTitle())
                 .iconClass(skill.getIconClass())
+                .category(skill.getCategory())
+                .orderIndex(skill.getOrderIndex())
                 .build();
     }
 
@@ -187,6 +216,20 @@ public class AdminServiceImpl implements AdminService {
     // -------------------------------------------------------------------------
 
     @Override
+    public List<AdminProjectResponse> getProjects() {
+        return projectRepository.findAllByOrderByOrderIndexAsc().stream()
+                .map(project -> mapProjectToResponse(project, project.getProjectUrls()))
+                .toList();
+    }
+
+    @Override
+    public AdminProjectResponse getProjectById(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
+        return mapProjectToResponse(project, project.getProjectUrls());
+    }
+
+    @Override
     @Transactional
     public AdminProjectResponse createProject(ProjectRequest request) {
         // Resolve skills
@@ -203,6 +246,7 @@ public class AdminServiceImpl implements AdminService {
                 .highlightVi(request.getHighlightVi())
                 .highlightEn(request.getHighlightEn())
                 .orderIndex(request.getOrderIndex())
+                .isVisible(request.getIsVisible() != null ? request.getIsVisible() : true)
                 .skills(skills)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -240,6 +284,9 @@ public class AdminServiceImpl implements AdminService {
         project.setHighlightVi(request.getHighlightVi());
         project.setHighlightEn(request.getHighlightEn());
         project.setOrderIndex(request.getOrderIndex());
+        if (request.getIsVisible() != null) {
+            project.setIsVisible(request.getIsVisible());
+        }
 
         // Update skills
         Set<Skill> skills = new HashSet<>(skillRepository.findAllById(request.getSkillIds()));
@@ -267,29 +314,40 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void deleteProject(Long id) {
-        if (!projectRepository.existsById(id)) {
-            throw new AppException(ErrorCode.PROJECT_NOT_FOUND);
-        }
-        projectRepository.deleteById(id);
+    public AdminProjectResponse toggleProjectVisibility(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
+        project.setIsVisible(!Boolean.TRUE.equals(project.getIsVisible()));
+        Project saved = projectRepository.save(project);
+        return mapProjectToResponse(saved, saved.getProjectUrls());
     }
 
-    private AdminProjectResponse mapProjectToResponse(Project project, List<ProjectUrl> urls) {
-        List<SkillResponse> skillResponses = project.getSkills().stream()
-                .map(s -> SkillResponse.builder()
-                        .id(s.getId())
-                        .title(s.getTitle())
-                        .iconClass(s.getIconClass())
-                        .build())
-                .collect(java.util.stream.Collectors.toList());
+    @Override
+    @Transactional
+    public void deleteProject(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROJECT_NOT_FOUND));
+        // Soft delete: chuyển sang trạng thái ẩn (isVisible = false)
+        project.setIsVisible(false);
+        projectRepository.save(project);
+    }
 
-        List<AdminProjectUrlResponse> urlResponses = urls.stream()
-                .map(u -> AdminProjectUrlResponse.builder()
-                        .labelVi(u.getLabelVi())
-                        .labelEn(u.getLabelEn())
-                        .url(u.getUrl())
-                        .build())
-                .collect(java.util.stream.Collectors.toList());
+    private AdminProjectResponse mapProjectToResponse(Project project, Collection<ProjectUrl> urls) {
+        List<SkillResponse> skillResponses = project.getSkills() != null
+                ? project.getSkills().stream()
+                        .map(this::mapSkillToResponse)
+                        .collect(java.util.stream.Collectors.toList())
+                : java.util.Collections.emptyList();
+
+        List<AdminProjectUrlResponse> urlResponses = urls != null
+                ? urls.stream()
+                        .map(u -> AdminProjectUrlResponse.builder()
+                                .labelVi(u.getLabelVi())
+                                .labelEn(u.getLabelEn())
+                                .url(u.getUrl())
+                                .build())
+                        .collect(java.util.stream.Collectors.toList())
+                : java.util.Collections.emptyList();
 
         return AdminProjectResponse.builder()
                 .id(project.getId())
@@ -302,6 +360,7 @@ public class AdminServiceImpl implements AdminService {
                 .highlightVi(project.getHighlightVi())
                 .highlightEn(project.getHighlightEn())
                 .orderIndex(project.getOrderIndex())
+                .isVisible(project.getIsVisible() != null ? project.getIsVisible() : true)
                 .skills(skillResponses)
                 .urls(urlResponses)
                 .build();

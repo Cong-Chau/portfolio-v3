@@ -47,6 +47,9 @@ public class ProjectRequest {
     private Integer orderIndex;
 
     @Builder.Default
+    private Boolean isVisible = true;
+
+    @Builder.Default
     private List<Long> skillIds = new ArrayList<>();
 
     @Valid

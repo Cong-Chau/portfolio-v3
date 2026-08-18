@@ -26,6 +26,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/v1/portfolio/**").permitAll()
+                        .requestMatchers("/v1/health/**").permitAll()
                         .requestMatchers("/v1/admin/**").permitAll() // TODO: đổi thành authenticated() khi thêm JWT
                         .anyRequest().authenticated()
                 );

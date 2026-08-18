@@ -1,5 +1,6 @@
 package com.portfolio.server.dto.response;
 
+import com.portfolio.server.enums.SkillCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +16,8 @@ public class SkillResponse {
     private String title;
     
     private String iconClass;
+
+    private SkillCategory category;
+
+    private Integer orderIndex;
 }

@@ -3,12 +3,13 @@ import { usePersonal } from "../../hooks/usePersonal";
 import { useAdminLayout } from "../../components/layout/AdminLayoutContext";
 import { useToast } from "../../context/ToastContext";
 import { personalService } from "../../services/personalService";
+import { translationService } from "../../services/translationService";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
+import { Textarea } from "../../components/ui/Textarea";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { CardSkeleton } from "../../components/ui/Skeleton";
-import { BilingualField } from "../../components/common/BilingualField";
 import { Modal } from "../../components/common/Modal";
 import type { PersonalInfoRequest } from "../../types/api";
 import {
@@ -25,6 +26,7 @@ import {
   Trash2,
   Link2,
   Camera,
+  Sparkles,
 } from "lucide-react";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -121,6 +123,8 @@ function PersonalInfoForm({
   const [dragOver, setDragOver] = useState(false);
   const [showManualUrl, setShowManualUrl] = useState(false);
   const [showManualAvatarUrl, setShowManualAvatarUrl] = useState(false);
+  const [translatingKey, setTranslatingKey] = useState<string | null>(null);
+  const [translatingAll, setTranslatingAll] = useState<"vi2en" | "en2vi" | null>(null);
 
   const set = <K extends keyof PersonalInfoRequest>(
     key: K,
@@ -130,6 +134,148 @@ function PersonalInfoForm({
     setForm((prev) => ({ ...prev, [key]: value }));
     setDirty(true);
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  const handleTranslateField = async (
+    sourceKey: "titleVi" | "titleEn" | "locationVi" | "locationEn" | "summaryVi" | "summaryEn",
+    targetKey: "titleVi" | "titleEn" | "locationVi" | "locationEn" | "summaryVi" | "summaryEn",
+    sourceLang: "vi" | "en",
+    targetLang: "vi" | "en",
+    context: string,
+  ) => {
+    if (!isEditing) return;
+    const text = form[sourceKey]?.trim();
+    if (!text) {
+      addToast("Vui lòng nhập nội dung trước khi dịch", "error");
+      return;
+    }
+
+    setTranslatingKey(sourceKey);
+    try {
+      const res = await translationService.translate({
+        text,
+        sourceLang,
+        targetLang,
+        context,
+      });
+
+      if (res.translatedText) {
+        set(targetKey, res.translatedText);
+        addToast(
+          `Dịch sang ${targetLang === "en" ? "Tiếng Anh" : "Tiếng Việt"} thành công!`,
+          "success",
+        );
+      }
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Dịch tự động thất bại. Vui lòng thử lại.";
+      addToast(errorMsg, "error");
+    } finally {
+      setTranslatingKey(null);
+    }
+  };
+
+  const handleTranslateAll = async (direction: "vi2en" | "en2vi") => {
+    if (!isEditing) return;
+    const isViToEn = direction === "vi2en";
+    const sourceLang = isViToEn ? "vi" : "en";
+    const targetLang = isViToEn ? "en" : "vi";
+
+    const fieldsToTranslate = isViToEn
+      ? [
+          {
+            sourceKey: "titleVi" as const,
+            targetKey: "titleEn" as const,
+            text: form.titleVi?.trim(),
+            context: "Professional job title for software developer",
+          },
+          {
+            sourceKey: "locationVi" as const,
+            targetKey: "locationEn" as const,
+            text: form.locationVi?.trim(),
+            context: "City / Location / Address",
+          },
+          {
+            sourceKey: "summaryVi" as const,
+            targetKey: "summaryEn" as const,
+            text: form.summaryVi?.trim(),
+            context: "Professional summary and bio for software engineer",
+          },
+        ]
+      : [
+          {
+            sourceKey: "titleEn" as const,
+            targetKey: "titleVi" as const,
+            text: form.titleEn?.trim(),
+            context: "Tiêu đề nghề nghiệp kỹ sư phần mềm / lập trình viên",
+          },
+          {
+            sourceKey: "locationEn" as const,
+            targetKey: "locationVi" as const,
+            text: form.locationEn?.trim(),
+            context: "Địa điểm / Tỉnh thành / Quốc gia",
+          },
+          {
+            sourceKey: "summaryEn" as const,
+            targetKey: "summaryVi" as const,
+            text: form.summaryEn?.trim(),
+            context: "Tóm tắt hồ sơ năng lực và kinh nghiệm kỹ sư phần mềm",
+          },
+        ];
+
+    const activeFields = fieldsToTranslate.filter((f) => !!f.text);
+    if (activeFields.length === 0) {
+      addToast(
+        `Vui lòng nhập ít nhất một trường ${isViToEn ? "Tiếng Việt" : "Tiếng Anh"} để dịch`,
+        "error",
+      );
+      return;
+    }
+
+    setTranslatingAll(direction);
+    try {
+      const results = await Promise.all(
+        activeFields.map(async (field) => {
+          const res = await translationService.translate({
+            text: field.text!,
+            sourceLang,
+            targetLang,
+            context: field.context,
+          });
+          return { targetKey: field.targetKey, text: res.translatedText };
+        }),
+      );
+
+      setForm((prev) => {
+        const next = { ...prev };
+        results.forEach((r) => {
+          if (r.text) {
+            next[r.targetKey] = r.text;
+          }
+        });
+        return next;
+      });
+      setDirty(true);
+
+      setErrors((prev) => {
+        const next = { ...prev };
+        results.forEach((r) => {
+          next[r.targetKey] = undefined;
+        });
+        return next;
+      });
+
+      addToast(
+        `Đã tự động dịch tất cả sang ${isViToEn ? "Tiếng Anh" : "Tiếng Việt"}!`,
+        "success",
+      );
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Dịch tự động thất bại. Vui lòng thử lại.";
+      addToast(errorMsg, "error");
+    } finally {
+      setTranslatingAll(null);
+    }
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -273,7 +419,7 @@ function PersonalInfoForm({
   }, [isEditing, dirty, saving, form]);
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       {/* Basic Info */}
       <Card>
         <CardHeader
@@ -425,7 +571,7 @@ function PersonalInfoForm({
             readOnly={!isEditing}
             id="input-name"
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Email"
               type="email"
@@ -455,44 +601,393 @@ function PersonalInfoForm({
       <Card>
         <CardHeader
           title="Nội dung song ngữ"
-          subtitle="Tiêu đề và tóm tắt bằng tiếng Việt và tiếng Anh"
+          subtitle="Thông tin chuyên môn hiển thị theo 2 ngôn ngữ Tiếng Việt & Tiếng Anh"
         />
-        <div className="space-y-6">
-          <BilingualField
-            labelVi="Tiêu đề (VI)"
-            labelEn="Tiêu đề (EN)"
-            valueVi={form.titleVi ?? ""}
-            valueEn={form.titleEn ?? ""}
-            onChangeVi={(v) => set("titleVi", v)}
-            onChangeEn={(v) => set("titleEn", v)}
-            readOnly={!isEditing}
-          />
-          <BilingualField
-            labelVi="Tóm tắt (VI)"
-            labelEn="Summary (EN)"
-            valueVi={form.summaryVi}
-            valueEn={form.summaryEn}
-            onChangeVi={(v) => set("summaryVi", v)}
-            onChangeEn={(v) => set("summaryEn", v)}
-            type="textarea"
-            required
-            errorVi={errors.summaryVi}
-            errorEn={errors.summaryEn}
-            rows={5}
-            readOnly={!isEditing}
-          />
-          <BilingualField
-            labelVi="Địa điểm (VI)"
-            labelEn="Location (EN)"
-            valueVi={form.locationVi}
-            valueEn={form.locationEn}
-            onChangeVi={(v) => set("locationVi", v)}
-            onChangeEn={(v) => set("locationEn", v)}
-            required
-            errorVi={errors.locationVi}
-            errorEn={errors.locationEn}
-            readOnly={!isEditing}
-          />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Cột Tiếng Việt */}
+          <div className="space-y-5 rounded-xl border border-border/80 bg-bg/40 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-border/60">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-lg leading-none">🇻🇳</span>
+                <div className="min-w-0">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+                    Nội dung Tiếng Việt
+                  </h3>
+                  <p className="text-[11px] text-text-muted truncate">
+                    Hiển thị trên giao diện phiên bản Tiếng Việt
+                  </p>
+                </div>
+              </div>
+
+              {isEditing && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  loading={translatingAll === "vi2en"}
+                  disabled={
+                    translatingAll !== null ||
+                    translatingKey !== null ||
+                    (!form.titleVi?.trim() &&
+                      !form.locationVi?.trim() &&
+                      !form.summaryVi?.trim())
+                  }
+                  icon={<Sparkles size={14} className="text-accent" />}
+                  onClick={() => handleTranslateAll("vi2en")}
+                  title="Tự động dịch tất cả các mục từ Tiếng Việt sang Tiếng Anh"
+                  id="btn-translate-all-vi-to-en"
+                  className="shrink-0 text-xs"
+                >
+                  Dịch VI ➔ EN
+                </Button>
+              )}
+            </div>
+
+            {/* Title VI */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="input-title-vi"
+                  className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+                >
+                  Tiêu đề nghề nghiệp (VI)
+                </label>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTranslateField(
+                        "titleVi",
+                        "titleEn",
+                        "vi",
+                        "en",
+                        "Professional job title for software engineer / developer",
+                      )
+                    }
+                    disabled={
+                      translatingKey !== null ||
+                      translatingAll !== null ||
+                      !form.titleVi?.trim()
+                    }
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Dịch tiêu đề sang Tiếng Anh"
+                    id="btn-translate-title-vi"
+                  >
+                    {translatingKey === "titleVi" ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Dịch sang EN
+                  </button>
+                )}
+              </div>
+              <Input
+                value={form.titleVi ?? ""}
+                onChange={(e) => set("titleVi", e.target.value)}
+                error={errors.titleVi}
+                maxLength={100}
+                placeholder="VD: Senior Full-Stack Developer"
+                readOnly={!isEditing}
+                id="input-title-vi"
+              />
+            </div>
+
+            {/* Location VI */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="input-location-vi"
+                  className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+                >
+                  Địa điểm (VI) <span className="ml-0.5 text-danger">*</span>
+                </label>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTranslateField(
+                        "locationVi",
+                        "locationEn",
+                        "vi",
+                        "en",
+                        "City and country location address",
+                      )
+                    }
+                    disabled={
+                      translatingKey !== null ||
+                      translatingAll !== null ||
+                      !form.locationVi?.trim()
+                    }
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Dịch địa điểm sang Tiếng Anh"
+                    id="btn-translate-location-vi"
+                  >
+                    {translatingKey === "locationVi" ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Dịch sang EN
+                  </button>
+                )}
+              </div>
+              <Input
+                value={form.locationVi}
+                onChange={(e) => set("locationVi", e.target.value)}
+                required
+                error={errors.locationVi}
+                maxLength={150}
+                placeholder="VD: TP. Hồ Chí Minh, Việt Nam"
+                readOnly={!isEditing}
+                id="input-location-vi"
+              />
+            </div>
+
+            {/* Summary VI */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="input-summary-vi"
+                  className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+                >
+                  Tóm tắt giới thiệu (VI) <span className="ml-0.5 text-danger">*</span>
+                </label>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTranslateField(
+                        "summaryVi",
+                        "summaryEn",
+                        "vi",
+                        "en",
+                        "Professional summary and bio for software engineer portfolio",
+                      )
+                    }
+                    disabled={
+                      translatingKey !== null ||
+                      translatingAll !== null ||
+                      !form.summaryVi?.trim()
+                    }
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Dịch tóm tắt giới thiệu sang Tiếng Anh"
+                    id="btn-translate-summary-vi"
+                  >
+                    {translatingKey === "summaryVi" ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Dịch sang EN
+                  </button>
+                )}
+              </div>
+              <Textarea
+                value={form.summaryVi}
+                onChange={(e) => set("summaryVi", e.target.value)}
+                required
+                error={errors.summaryVi}
+                rows={6}
+                placeholder="Mô tả tóm tắt về kinh nghiệm, thế mạnh và định hướng nghề nghiệp..."
+                readOnly={!isEditing}
+                id="input-summary-vi"
+              />
+            </div>
+          </div>
+
+          {/* Cột Tiếng Anh */}
+          <div className="space-y-5 rounded-xl border border-border/80 bg-bg/40 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-border/60">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-lg leading-none">🇬🇧</span>
+                <div className="min-w-0">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+                    English Content
+                  </h3>
+                  <p className="text-[11px] text-text-muted truncate">
+                    Displayed on the English version interface
+                  </p>
+                </div>
+              </div>
+
+              {isEditing && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  loading={translatingAll === "en2vi"}
+                  disabled={
+                    translatingAll !== null ||
+                    translatingKey !== null ||
+                    (!form.titleEn?.trim() &&
+                      !form.locationEn?.trim() &&
+                      !form.summaryEn?.trim())
+                  }
+                  icon={<Sparkles size={14} className="text-accent" />}
+                  onClick={() => handleTranslateAll("en2vi")}
+                  title="Tự động dịch tất cả các mục từ Tiếng Anh sang Tiếng Việt"
+                  id="btn-translate-all-en-to-vi"
+                  className="shrink-0 text-xs"
+                >
+                  Dịch EN ➔ VI
+                </Button>
+              )}
+            </div>
+
+            {/* Title EN */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="input-title-en"
+                  className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+                >
+                  Professional Title (EN)
+                </label>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTranslateField(
+                        "titleEn",
+                        "titleVi",
+                        "en",
+                        "vi",
+                        "Tiêu đề nghề nghiệp kỹ sư phần mềm / lập trình viên",
+                      )
+                    }
+                    disabled={
+                      translatingKey !== null ||
+                      translatingAll !== null ||
+                      !form.titleEn?.trim()
+                    }
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Dịch tiêu đề nghề nghiệp sang Tiếng Việt"
+                    id="btn-translate-title-en"
+                  >
+                    {translatingKey === "titleEn" ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Dịch sang VI
+                  </button>
+                )}
+              </div>
+              <Input
+                value={form.titleEn ?? ""}
+                onChange={(e) => set("titleEn", e.target.value)}
+                error={errors.titleEn}
+                maxLength={100}
+                placeholder="e.g. Senior Full-Stack Developer"
+                readOnly={!isEditing}
+                id="input-title-en"
+              />
+            </div>
+
+            {/* Location EN */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="input-location-en"
+                  className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+                >
+                  Location (EN) <span className="ml-0.5 text-danger">*</span>
+                </label>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTranslateField(
+                        "locationEn",
+                        "locationVi",
+                        "en",
+                        "vi",
+                        "Địa điểm tỉnh/thành phố và quốc gia",
+                      )
+                    }
+                    disabled={
+                      translatingKey !== null ||
+                      translatingAll !== null ||
+                      !form.locationEn?.trim()
+                    }
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Dịch địa điểm sang Tiếng Việt"
+                    id="btn-translate-location-en"
+                  >
+                    {translatingKey === "locationEn" ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Dịch sang VI
+                  </button>
+                )}
+              </div>
+              <Input
+                value={form.locationEn}
+                onChange={(e) => set("locationEn", e.target.value)}
+                required
+                error={errors.locationEn}
+                maxLength={150}
+                placeholder="e.g. Ho Chi Minh City, Vietnam"
+                readOnly={!isEditing}
+                id="input-location-en"
+              />
+            </div>
+
+            {/* Summary EN */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="input-summary-en"
+                  className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+                >
+                  Summary / Bio (EN) <span className="ml-0.5 text-danger">*</span>
+                </label>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTranslateField(
+                        "summaryEn",
+                        "summaryVi",
+                        "en",
+                        "vi",
+                        "Tóm tắt hồ sơ năng lực và kinh nghiệm kỹ sư phần mềm",
+                      )
+                    }
+                    disabled={
+                      translatingKey !== null ||
+                      translatingAll !== null ||
+                      !form.summaryEn?.trim()
+                    }
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Dịch tóm tắt sang Tiếng Việt"
+                    id="btn-translate-summary-en"
+                  >
+                    {translatingKey === "summaryEn" ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Dịch sang VI
+                  </button>
+                )}
+              </div>
+              <Textarea
+                value={form.summaryEn}
+                onChange={(e) => set("summaryEn", e.target.value)}
+                required
+                error={errors.summaryEn}
+                rows={6}
+                placeholder="Brief overview of your experience, key skills, and career focus..."
+                readOnly={!isEditing}
+                id="input-summary-en"
+              />
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -751,7 +1246,7 @@ function PersonalInfoForm({
               <ExternalLink size={13} /> Mở tab mới
             </a>
           </div>
-          <div className="relative h-[55vh] sm:h-[65vh] md:h-[70vh] min-h-[280px] max-h-[750px] w-full rounded-lg border border-border bg-surface-muted/20 overflow-hidden shadow-inner">
+          <div className="relative h-[55vh] sm:h-[65vh] md:h-[70vh] min-h-70 max-h-187.5 w-full rounded-lg border border-border bg-surface-muted/20 overflow-hidden shadow-inner">
             <iframe
               src={form.cvUrl}
               title="CV Preview"

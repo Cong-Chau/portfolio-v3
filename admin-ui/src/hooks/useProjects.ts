@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { projectsService } from "../services/projectsService";
-import { skillsService } from "../services/skillsService";
 import { useToast } from "../context/ToastContext";
 import type { AdminProjectResponse, ProjectRequest } from "../types/api";
 
@@ -12,9 +11,7 @@ export function useProjects() {
 
   const fetch = useCallback(async () => {
     try {
-      const skillGroups = await skillsService.list();
-      const allSkills = skillGroups.flatMap((g) => g.skills);
-      const data = await projectsService.list(allSkills);
+      const data = await projectsService.list();
       setProjects(data.sort((a, b) => a.orderIndex - b.orderIndex));
     } catch (err) {
       addToast(err instanceof Error ? err.message : "Không tải được dữ liệu", "error");
@@ -32,9 +29,7 @@ export function useProjects() {
     let ignore = false;
     async function load() {
       try {
-        const skillGroups = await skillsService.list();
-        const allSkills = skillGroups.flatMap((g) => g.skills);
-        const data = await projectsService.list(allSkills);
+        const data = await projectsService.list();
         if (!ignore) {
           setProjects(data.sort((a, b) => a.orderIndex - b.orderIndex));
         }
@@ -87,19 +82,41 @@ export function useProjects() {
     }
   };
 
+  const toggleVisibility = async (id: number) => {
+    try {
+      const res = await projectsService.toggleVisibility(id);
+      setProjects((prev) => prev.map((p) => (p.id === id ? res : p)));
+      addToast(
+        res.isVisible
+          ? "Đã hiển thị dự án trên Portfolio"
+          : "Đã ẩn dự án khỏi Portfolio",
+        "success",
+      );
+      return true;
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Thay đổi trạng thái thất bại",
+        "error",
+      );
+      return false;
+    }
+  };
+
   const remove = async (id: number) => {
     try {
       await projectsService.remove(id);
-      setProjects((prev) => prev.filter((p) => p.id !== id));
-      addToast("Đã xóa dự án", "success");
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, isVisible: false } : p)),
+      );
+      addToast("Đã ẩn dự án khỏi Portfolio", "success");
       return true;
     } catch (err) {
-      addToast(err instanceof Error ? err.message : "Xóa thất bại", "error");
+      addToast(err instanceof Error ? err.message : "Ẩn dự án thất bại", "error");
       return false;
     }
   };
 
   const getById = (id: number) => projects.find((p) => p.id === id) ?? null;
 
-  return { projects, loading, saving, create, update, remove, getById, refetch };
+  return { projects, loading, saving, create, update, toggleVisibility, remove, getById, refetch };
 }

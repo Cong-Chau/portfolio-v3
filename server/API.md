@@ -4,7 +4,40 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
 
 ## Base URL
 - **Public Portfolio API**: `/v1/portfolio`
+- **Health Check API**: `/v1/health`
 - **Admin API**: `/v1/admin`
+
+---
+
+## 0. Health Check API
+
+### 0.1 Kiểm Tra Kết Nối Server & Database
+- **Method & Endpoint**: `GET /v1/health`
+- **Mô tả**: Thực hiện truy vấn `SELECT 1` tới database PostgreSQL để kiểm tra trạng thái hoạt động của hệ thống và kết nối DB.
+- **Response thành công (200 OK)**:
+  ```json
+  {
+    "code": 200,
+    "message": null,
+    "result": {
+      "status": "UP",
+      "database": "UP",
+      "message": "Database connection is healthy"
+    }
+  }
+  ```
+- **Response thất bại (503 Service Unavailable)**:
+  ```json
+  {
+    "code": 503,
+    "message": null,
+    "result": {
+      "status": "DOWN",
+      "database": "DOWN",
+      "message": "Database connection failed: <chi tiết lỗi>"
+    }
+  }
+  ```
 
 ---
 
@@ -109,6 +142,11 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
 - **Status Code**: `200 OK`
 - *Ghi chú: API này sau khi upload thành công lên Cloudinary sẽ tự động cập nhật trường `cv_url` trong bảng `personal_info`.*
 
+#### Lấy Thông Tin Cá Nhân (Admin - Đầy Đủ Song Ngữ)
+- **Method & Endpoint**: `GET /v1/admin/personal`
+- **Response**: `ApiResponse<AdminPersonalInfoResponse>`
+- **Status Code**: `200 OK`
+
 #### Cập Nhật Thông Tin Cá Nhân
 - **Method & Endpoint**: `PUT /v1/admin/personal`
 - **Request Body** (`PersonalInfoRequest`):
@@ -129,10 +167,29 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
     "cvUrl": "string (tùy chọn)"
   }
   ```
-- **Response**: `ApiResponse<PersonalInfoResponse>`
+- **Response**: `ApiResponse<AdminPersonalInfoResponse>`
 - **Status Code**: `200 OK`
 
 ### 2.2 Quản Lý Giới Thiệu (About Details)
+
+#### Lấy Danh Sách Giới Thiệu (Admin)
+- **Method & Endpoint**: `GET /v1/admin/about`
+- **Response**: `ApiResponse<List<AboutDetailResponse>>`
+  ```json
+  {
+    "code": 200,
+    "message": null,
+    "result": [
+      {
+        "id": 1,
+        "contentVi": "Đoạn giới thiệu tiếng Việt...",
+        "contentEn": "About me paragraph in English...",
+        "orderIndex": 0
+      }
+    ]
+  }
+  ```
+- **Status Code**: `200 OK`
 
 #### Tạo Mới Giới Thiệu
 - **Method & Endpoint**: `POST /v1/admin/about`
@@ -162,6 +219,26 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
 
 ### 2.3 Quản Lý Kỹ Năng (Skills)
 
+#### Lấy Danh Sách Kỹ Năng (Admin)
+- **Method & Endpoint**: `GET /v1/admin/skills`
+- **Response**: `ApiResponse<List<SkillResponse>>`
+  ```json
+  {
+    "code": 200,
+    "message": null,
+    "result": [
+      {
+        "id": 1,
+        "title": "Java",
+        "iconClass": "devicon-java-plain colored",
+        "category": "TECH",
+        "orderIndex": 0
+      }
+    ]
+  }
+  ```
+- **Status Code**: `200 OK`
+
 #### Tạo Mới Kỹ Năng
 - **Method & Endpoint**: `POST /v1/admin/skills`
 - **Request Body** (`SkillRequest`):
@@ -169,7 +246,7 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
   {
     "title": "string (bắt buộc, tối đa 50 ký tự)",
     "iconClass": "string (bắt buộc, tối đa 100 ký tự)",
-    "category": "enum (SkillCategory) (bắt buộc, vd: FRONTEND, BACKEND, DATABASE...)",
+    "category": "enum (SkillCategory) (bắt buộc, vd: TECH, TOOL)",
     "orderIndex": "integer (bắt buộc, >= 0)"
   }
   ```
@@ -190,6 +267,17 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
 - **Status Code**: `204 No Content`
 
 ### 2.4 Quản Lý Dự Án (Projects)
+
+#### Lấy Danh Sách Dự Án (Admin)
+- **Method & Endpoint**: `GET /v1/admin/projects`
+- **Response**: `ApiResponse<List<AdminProjectResponse>>`
+- **Status Code**: `200 OK`
+
+#### Lấy Chi Tiết Một Dự Án (Admin)
+- **Method & Endpoint**: `GET /v1/admin/projects/{id}`
+- **Path Variables**: `id`
+- **Response**: `ApiResponse<AdminProjectResponse>`
+- **Status Code**: `200 OK`
 
 #### Tạo Mới Dự Án
 - **Method & Endpoint**: `POST /v1/admin/projects`
@@ -227,8 +315,42 @@ Tài liệu này đặc tả toàn bộ các API trong dự án.
 - **Response**: `ApiResponse<AdminProjectResponse>`
 - **Status Code**: `200 OK`
 
-#### Xóa Dự Án
+#### Bật/Tắt Hiển Thị Dự Án Trên Portfolio
+- **Method & Endpoint**: `PATCH /v1/admin/projects/{id}/toggle-visibility`
+- **Path Variables**: `id`
+- **Response**: `ApiResponse<AdminProjectResponse>`
+- **Status Code**: `200 OK`
+
+#### Ẩn Dự Án Khỏi Portfolio (Soft Delete)
 - **Method & Endpoint**: `DELETE /v1/admin/projects/{id}`
 - **Path Variables**: `id`
 - **Response**: `ApiResponse<Void>` (Body sẽ rỗng)
 - **Status Code**: `204 No Content`
+- *Ghi chú: Thay vì xóa cứng khỏi cơ sở dữ liệu làm mất dữ liệu lịch sử, API này chuyển trường `is_visible = false` để ẩn dự án khỏi giao diện Portfolio công khai.*
+
+### 2.5 Dịch Thuật Tự Động Với Gemini AI (Translation)
+
+#### Dịch Văn Bản Giữa Tiếng Việt và Tiếng Anh
+- **Method & Endpoint**: `POST /v1/admin/translate`
+- **Request Body** (`TranslateRequest`):
+  ```json
+  {
+    "text": "string (bắt buộc, văn bản cần dịch)",
+    "sourceLang": "string (tùy chọn, mặc định: vi)",
+    "targetLang": "string (bắt buộc, ví dụ: en hoặc vi)",
+    "context": "string (tùy chọn, ví dụ: bio, project description, job title...)"
+  }
+  ```
+- **Response**: `ApiResponse<TranslateResponse>`
+  ```json
+  {
+    "code": 200,
+    "message": null,
+    "result": {
+      "translatedText": "I am a full-stack developer passionate about building scalable web applications.",
+      "sourceLang": "vi",
+      "targetLang": "en"
+    }
+  }
+  ```
+- **Status Code**: `200 OK`

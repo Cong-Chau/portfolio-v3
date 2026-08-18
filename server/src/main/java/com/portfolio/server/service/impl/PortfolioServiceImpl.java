@@ -75,7 +75,7 @@ public class PortfolioServiceImpl implements PortfolioService {
     @Override
     public List<ProjectResponse> getProjects(String lang) {
         String validatedLang = validateLang(lang);
-        List<Project> projects = projectRepository.findAllByOrderByOrderIndexAsc();
+        List<Project> projects = projectRepository.findByIsVisibleTrueOrderByOrderIndexAsc();
 
         return projects.stream()
                 .map(project -> mapProjectToResponse(project, validatedLang))

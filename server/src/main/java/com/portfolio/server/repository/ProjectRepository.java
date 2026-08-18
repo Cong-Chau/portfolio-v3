@@ -11,4 +11,7 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     @EntityGraph(attributePaths = {"projectUrls", "skills"})
     List<Project> findAllByOrderByOrderIndexAsc();
+
+    @EntityGraph(attributePaths = {"projectUrls", "skills"})
+    List<Project> findByIsVisibleTrueOrderByOrderIndexAsc();
 }

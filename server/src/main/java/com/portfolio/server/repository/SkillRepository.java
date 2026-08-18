@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface SkillRepository extends JpaRepository<Skill, Long> {
     List<Skill> findByCategoryOrderByOrderIndexAsc(SkillCategory category);
+    List<Skill> findAllByOrderByOrderIndexAsc();
 }

@@ -49,6 +49,10 @@ public class Project {
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex = 0;
 
+    @Column(name = "is_visible", nullable = false)
+    @Builder.Default
+    private Boolean isVisible = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

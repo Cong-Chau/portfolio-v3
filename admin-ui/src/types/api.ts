@@ -22,6 +22,8 @@ export interface PersonalInfoRequest {
   cvUrl?: string;
 }
 
+export type AdminPersonalInfoResponse = PersonalInfoRequest;
+
 export interface UploadCvResponse {
   url: string;
   publicId: string;
@@ -122,6 +124,7 @@ export interface ProjectRequest {
   highlightVi: string;
   highlightEn: string;
   orderIndex: number;
+  isVisible?: boolean;
   skillIds: number[];
   urls: ProjectUrl[];
 }
@@ -137,6 +140,7 @@ export interface AdminProjectResponse {
   highlightVi: string;
   highlightEn: string;
   orderIndex: number;
+  isVisible?: boolean;
   skills: SkillResponse[];
   urls: ProjectUrl[];
 }
@@ -158,6 +162,20 @@ export interface ToastItem {
   id: string;
   message: string;
   type: ToastType;
+}
+
+// ─── Translation ─────────────────────────────────────────────────────────────
+export interface TranslateRequest {
+  text: string;
+  sourceLang?: string;
+  targetLang: string;
+  context?: string;
+}
+
+export interface TranslateResponse {
+  translatedText: string;
+  sourceLang: string;
+  targetLang: string;
 }
 
 // ─── Language ────────────────────────────────────────────────────────────────

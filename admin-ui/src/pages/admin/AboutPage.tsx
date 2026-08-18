@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useAbout } from "../../hooks/useAbout";
 import { useAdminLayout } from "../../components/layout/AdminLayoutContext";
+import { useToast } from "../../context/ToastContext";
+import { translationService } from "../../services/translationService";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Textarea } from "../../components/ui/Textarea";
@@ -9,7 +11,7 @@ import { Drawer } from "../../components/common/Drawer";
 import { SortableList } from "../../components/common/SortableList";
 import { CardSkeleton } from "../../components/ui/Skeleton";
 import type { AboutDetailRequest, AboutDetailResponse } from "../../types/api";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, Sparkles, Loader2 } from "lucide-react";
 
 // ─── Drawer Form ─────────────────────────────────────────────────────────────
 type AboutForm = AboutDetailRequest;
@@ -44,6 +46,7 @@ function AboutDrawerForm({
   saving,
   onClose,
 }: AboutDrawerFormProps) {
+  const { addToast } = useToast();
   const [form, setForm] = useState<AboutForm>(() =>
     initial
       ? {
@@ -54,10 +57,53 @@ function AboutDrawerForm({
       : { contentVi: "", contentEn: "", orderIndex: 0 },
   );
   const [errors, setErrors] = useState<AboutErrors>({});
+  const [translating, setTranslating] = useState<"vi2en" | "en2vi" | null>(null);
 
   const set = <K extends keyof AboutForm>(k: K, v: AboutForm[K]) => {
     setForm((p) => ({ ...p, [k]: v }));
     setErrors((p) => ({ ...p, [k]: undefined }));
+  };
+
+  const handleTranslate = async (direction: "vi2en" | "en2vi") => {
+    const isViToEn = direction === "vi2en";
+    const sourceText = isViToEn ? form.contentVi?.trim() : form.contentEn?.trim();
+    if (!sourceText) {
+      addToast(
+        `Vui lòng nhập nội dung ${isViToEn ? "Tiếng Việt" : "Tiếng Anh"} trước khi dịch`,
+        "error",
+      );
+      return;
+    }
+
+    setTranslating(direction);
+    try {
+      const res = await translationService.translate({
+        text: sourceText,
+        sourceLang: isViToEn ? "vi" : "en",
+        targetLang: isViToEn ? "en" : "vi",
+        context: isViToEn
+          ? "About me section / professional bio paragraph for developer portfolio"
+          : "Đoạn văn giới thiệu về bản thân, kỹ năng và kinh nghiệm cho lập trình viên",
+      });
+
+      if (res.translatedText) {
+        if (isViToEn) {
+          set("contentEn", res.translatedText);
+        } else {
+          set("contentVi", res.translatedText);
+        }
+        addToast(
+          `Dịch sang ${isViToEn ? "Tiếng Anh" : "Tiếng Việt"} thành công!`,
+          "success",
+        );
+      }
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Dịch tự động thất bại. Vui lòng thử lại.";
+      addToast(errorMsg, "error");
+    } finally {
+      setTranslating(null);
+    }
   };
 
   const handleSave = async () => {
@@ -72,24 +118,78 @@ function AboutDrawerForm({
 
   return (
     <div className="space-y-5">
-      <Textarea
-        label="Nội dung (VI)"
-        value={form.contentVi}
-        onChange={(e) => set("contentVi", e.target.value)}
-        required
-        error={errors.contentVi}
-        rows={5}
-        id="about-content-vi"
-      />
-      <Textarea
-        label="Content (EN)"
-        value={form.contentEn}
-        onChange={(e) => set("contentEn", e.target.value)}
-        required
-        error={errors.contentEn}
-        rows={5}
-        id="about-content-en"
-      />
+      {/* Content VI */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="about-content-vi"
+            className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+          >
+            Nội dung (VI) <span className="ml-0.5 text-danger">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => handleTranslate("vi2en")}
+            disabled={translating !== null || !form.contentVi?.trim()}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            title="Dịch nội dung sang Tiếng Anh"
+            id="btn-translate-about-vi"
+          >
+            {translating === "vi2en" ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Sparkles size={12} />
+            )}
+            Dịch sang EN
+          </button>
+        </div>
+        <Textarea
+          value={form.contentVi}
+          onChange={(e) => set("contentVi", e.target.value)}
+          required
+          error={errors.contentVi}
+          rows={5}
+          placeholder="Nhập thông tin giới thiệu bản thân bằng Tiếng Việt..."
+          id="about-content-vi"
+        />
+      </div>
+
+      {/* Content EN */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="about-content-en"
+            className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
+          >
+            Content (EN) <span className="ml-0.5 text-danger">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => handleTranslate("en2vi")}
+            disabled={translating !== null || !form.contentEn?.trim()}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            title="Dịch nội dung sang Tiếng Việt"
+            id="btn-translate-about-en"
+          >
+            {translating === "en2vi" ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Sparkles size={12} />
+            )}
+            Dịch sang VI
+          </button>
+        </div>
+        <Textarea
+          value={form.contentEn}
+          onChange={(e) => set("contentEn", e.target.value)}
+          required
+          error={errors.contentEn}
+          rows={5}
+          placeholder="Enter about me details in English..."
+          id="about-content-en"
+        />
+      </div>
+
       <Input
         label="Thứ tự"
         type="number"

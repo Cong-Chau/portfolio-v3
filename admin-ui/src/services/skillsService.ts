@@ -4,29 +4,22 @@ import {
   type SkillGroupResponse,
   type SkillRequest,
   type SkillResponse,
-  type SkillsResponse,
 } from "../types/api";
 
 export const skillsService = {
   list: async (): Promise<SkillGroupResponse[]> => {
-    const res = await apiGet<SkillsResponse>("/v1/portfolio/skills");
-    const techsGroup: SkillGroupResponse = {
-      category: SkillCategory.TECH,
-      skills: (res?.techs || []).map((s, idx) => ({
-        ...s,
-        category: SkillCategory.TECH,
-        orderIndex: idx,
-      })),
-    };
-    const toolsGroup: SkillGroupResponse = {
-      category: SkillCategory.TOOL,
-      skills: (res?.tools || []).map((s, idx) => ({
-        ...s,
-        category: SkillCategory.TOOL,
-        orderIndex: idx,
-      })),
-    };
-    return [techsGroup, toolsGroup];
+    const all = await apiGet<SkillResponse[]>("/v1/admin/skills");
+    const techs = (all || [])
+      .filter((s) => s.category === SkillCategory.TECH)
+      .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+    const tools = (all || [])
+      .filter((s) => s.category === SkillCategory.TOOL)
+      .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+
+    return [
+      { category: SkillCategory.TECH, skills: techs },
+      { category: SkillCategory.TOOL, skills: tools },
+    ];
   },
   create: (data: SkillRequest) =>
     apiPost<SkillResponse>("/v1/admin/skills", data),
