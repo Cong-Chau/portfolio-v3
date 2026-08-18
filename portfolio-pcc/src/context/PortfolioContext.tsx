@@ -1,12 +1,6 @@
 "use client";
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { PortfolioData } from "@/types/portfolio";
 import { fetchPortfolio } from "@/services/portfolioApi";
 import { useLanguage } from "./LanguageContext";
@@ -24,29 +18,35 @@ const PortfolioContext = createContext<PortfolioContextProps | undefined>(
 
 export function PortfolioProvider({ children }: { children: ReactNode }) {
   const { lang } = useLanguage();
-  const [data, setData] = useState<PortfolioData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await fetchPortfolio(lang);
-      setData(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không tải được dữ liệu");
-    } finally {
-      setLoading(false);
-    }
-  }, [lang]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const {
+    data = null,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<PortfolioData | null, Error>({
+    queryKey: ["portfolio", lang],
+    queryFn: async () => {
+      try {
+        return await fetchPortfolio(lang);
+      } catch (err) {
+        console.warn("Lỗi khi tải dữ liệu portfolio:", err);
+        return null;
+      }
+    },
+  });
 
   return (
-    <PortfolioContext.Provider value={{ data, loading, error, refetch: load }}>
+    <PortfolioContext.Provider
+      value={{
+        data: data ?? null,
+        loading: isLoading,
+        error: error ? error.message : null,
+        refetch: async () => {
+          await refetch();
+        },
+      }}
+    >
       {children}
     </PortfolioContext.Provider>
   );

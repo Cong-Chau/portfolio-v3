@@ -4,6 +4,7 @@ import "./globals.css";
 import Background from "@/components/sessions/Background";
 import Preloader from "@/components/common/Preloader";
 import TargetCursor from "@/components/cards/TargetCursor";
+import QueryProvider from "@/providers/QueryProvider";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { PortfolioProvider } from "@/context/PortfolioContext";
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -63,15 +64,17 @@ function RootLayout({ children }: { children: React.ReactNode }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased relative w-full h-full bg-black`}
       >
-        <TargetCursor spinDuration={2} hideDefaultCursor={true} />
-        <Background />
-        <Preloader>
+        <QueryProvider>
           <LanguageProvider>
             <PortfolioProvider>
-              <main className="relative z-10 pt-20">{children}</main>
+              <TargetCursor spinDuration={2} hideDefaultCursor={true} />
+              <Background />
+              <Preloader>
+                <main className="relative z-10 pt-20">{children}</main>
+              </Preloader>
             </PortfolioProvider>
           </LanguageProvider>
-        </Preloader>
+        </QueryProvider>
       </body>
     </html>
   );

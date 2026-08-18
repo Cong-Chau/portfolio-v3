@@ -1,14 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePortfolio } from "@/context/PortfolioContext";
 
 export default function Preloader({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  const { loading } = usePortfolio();
 
   return (
     <>
