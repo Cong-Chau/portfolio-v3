@@ -29,16 +29,19 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI openAPI() {
-        Server serverDev = new Server().url(devUrl + "/api").description("Development Server");
+        Server serverRelative = new Server().url("/api").description("Current Server (Auto Domain)");
+        Server serverLocal = new Server().url("http://localhost:8080/api").description("Local Development Server");
+
         OpenAPI openAPI = new OpenAPI()
                 .info(new Info().title("Portfolio API").version("1.0").description("Portfolio Backend API Documentation"))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
 
         if (prodUrl != null && !prodUrl.isBlank() && !prodUrl.contains("your-production-url.com")) {
-            Server serverProd = new Server().url(prodUrl + "/api").description("Production Server");
-            openAPI.servers(List.of(serverProd, serverDev));
+            String cleanProd = prodUrl.endsWith("/api") ? prodUrl : prodUrl.replaceAll("/+$", "") + "/api";
+            Server serverProd = new Server().url(cleanProd).description("Production Server");
+            openAPI.servers(List.of(serverRelative, serverProd, serverLocal));
         } else {
-            openAPI.servers(List.of(serverDev));
+            openAPI.servers(List.of(serverRelative, serverLocal));
         }
 
         return openAPI;

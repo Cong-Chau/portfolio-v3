@@ -1,9 +1,20 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { ApiResponse } from "../types/api";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api";
+function getApiBaseUrl(): string {
+  let url = import.meta.env.VITE_API_BASE_URL;
+  if (!url) return "http://localhost:8080/api";
+  url = url.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  if (!url.endsWith("/api")) {
+    url = `${url.replace(/\/+$/, "")}/api`;
+  }
+  return url;
+}
+
+const BASE_URL = getApiBaseUrl();
 const TOKEN_KEY = "admin_token";
 
 // ─── Axios instance ───────────────────────────────────────────────────────────
