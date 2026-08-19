@@ -6,6 +6,8 @@ services:
     name: portfolio-server
     runtime: docker
     rootDir: server
+    dockerfilePath: Dockerfile
+    dockerContext: .
     plan: free
     region: singapore # Chọn Singapore để mạng về Việt Nam nhanh nhất
     healthCheckPath: /api/v1/health
@@ -17,7 +19,7 @@ services:
       - key: DB_HOST
         sync: false # Điền trên dashboard Render
       - key: DB_PORT
-        value: 5432
+        sync: false # Hỗ trợ port custom như Aiven 22475
       - key: DB_NAME
         sync: false
       - key: DB_USERNAME
