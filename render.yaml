@@ -59,13 +59,14 @@ services:
         # Tự động trỏ sang https://<backend-domain>/api
 
   # ============================================================================
-  # 3. Frontend: Admin UI (Vite React - Static Site miễn phí vĩnh viễn)
+  # 3. Frontend: Admin UI (Vite React - Static Site)
   # ============================================================================
-  - type: staticSite
+  - type: web
     name: portfolio-admin-ui
+    runtime: static
     rootDir: admin-ui
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
