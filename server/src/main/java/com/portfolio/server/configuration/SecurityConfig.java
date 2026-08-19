@@ -24,7 +24,15 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/error"
+                        ).permitAll()
                         .requestMatchers("/v1/portfolio/**").permitAll()
                         .requestMatchers("/v1/health/**").permitAll()
                         .requestMatchers("/v1/admin/**").permitAll() // TODO: đổi thành authenticated() khi thêm JWT
