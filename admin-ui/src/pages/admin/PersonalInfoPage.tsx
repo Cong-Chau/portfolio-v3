@@ -11,6 +11,7 @@ import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { CardSkeleton } from "../../components/ui/Skeleton";
 import { Modal } from "../../components/common/Modal";
+import { ImageCropModal } from "../../components/common/ImageCropModal";
 import type { PersonalInfoRequest } from "../../types/api";
 import {
   Save,
@@ -125,6 +126,31 @@ function PersonalInfoForm({
   const [showManualAvatarUrl, setShowManualAvatarUrl] = useState(false);
   const [translatingKey, setTranslatingKey] = useState<string | null>(null);
   const [translatingAll, setTranslatingAll] = useState<"vi2en" | "en2vi" | null>(null);
+
+  // Crop Avatar States
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropFileName, setCropFileName] = useState("avatar.jpg");
+
+  const handleAvatarSelect = (file: File) => {
+    if (!file) return;
+    const isImage =
+      file.type.startsWith("image/") ||
+      /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
+    if (!isImage) {
+      addToast("Chỉ hỗ trợ file hình ảnh (JPG, PNG, WEBP, GIF, SVG)", "error");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      addToast("Dung lượng ảnh tối đa là 10MB", "error");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setCropImageSrc(objectUrl);
+    setCropFileName(file.name);
+    setCropModalOpen(true);
+  };
 
   const set = <K extends keyof PersonalInfoRequest>(
     key: K,
@@ -438,7 +464,7 @@ function PersonalInfoForm({
               id="avatar-file-input"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleAvatarUpload(file);
+                if (file) handleAvatarSelect(file);
               }}
             />
 
@@ -1255,6 +1281,26 @@ function PersonalInfoForm({
           </div>
         </div>
       </Modal>
+
+      {/* Image Crop Modal */}
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={cropImageSrc}
+        fileName={cropFileName}
+        title="Cắt ảnh đại diện vuông"
+        onClose={() => {
+          setCropModalOpen(false);
+          if (cropImageSrc) URL.revokeObjectURL(cropImageSrc);
+          setCropImageSrc(null);
+          if (avatarInputRef.current) avatarInputRef.current.value = "";
+        }}
+        onConfirm={(croppedFile) => {
+          setCropModalOpen(false);
+          if (cropImageSrc) URL.revokeObjectURL(cropImageSrc);
+          setCropImageSrc(null);
+          handleAvatarUpload(croppedFile);
+        }}
+      />
     </div>
   );
 }
