@@ -12,6 +12,8 @@ services:
     region: singapore # Chọn Singapore để mạng về Việt Nam nhanh nhất
     healthCheckPath: /api/v1/health
     envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
       - key: PORT
         value: 8080
       - key: DB_SSLMODE

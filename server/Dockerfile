@@ -33,8 +33,9 @@ USER appuser
 # Copy generated jar from builder stage
 COPY --from=builder --chown=appuser:appgroup /app/target/*.jar app.jar
 
-# Spring Boot default port (Render/Koyeb will inject PORT env variable)
+# Spring Boot default port & profile (Render/Koyeb will inject PORT env variable)
 ENV PORT=8080
+ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080
 
 # Configure JVM memory limits for container environments (e.g., 512MB RAM free tier)
